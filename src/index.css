@@ -92,3 +92,24 @@ body {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
+
+/* innerHeader */
+.inner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 85px;
+    padding-inline: 50px;
+    position: relative;
+    margin-inline: auto;
+}
+
+.f-16 {
+  font-size: 16px;
+}
+
+.active.underline {
+  text-decoration-line: none;
+    border-bottom: 1px solid;
+  border-radius: 0;
+}

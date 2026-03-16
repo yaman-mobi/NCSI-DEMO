@@ -11,6 +11,7 @@ import NewsResourcesPublications from '../components/NewsResourcesPublications';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import LoggedInHomePage from './LoggedInHomePage';
+import UpperBar from '../components/UpperBar';
 
 export default function LandingPage() {
   const { isAuthenticated } = useAuth();
@@ -21,6 +22,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-white">
+      <UpperBar />
       <TopBar />
       <main id="main-content" className="flex flex-1 flex-col items-stretch" role="main">
       <div className="relative">
@@ -34,7 +36,7 @@ export default function LandingPage() {
       <IndicatorCards />
       <CategoryCards />
       <NewsResourcesPublications />
-      <Footer />
+      {/* <Footer /> */}
       </main>
     </div>
   );

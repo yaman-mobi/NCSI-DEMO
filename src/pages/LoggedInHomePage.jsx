@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePersona } from '../context/PersonaContext';
 import { TRENDING_INSIGHTS } from '../data/trendingInsights';
 import { MOCK_DATASETS } from '../data/omanMockData';
+import UpperBar from '../components/UpperBar';
 
 function getTimeGreeting() {
   const h = new Date().getHours();
@@ -177,6 +178,7 @@ export default function LoggedInHomePage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-white">
+      <UpperBar />
       <TopBar />
       <main id="main-content" className="flex-1 bg-portal-bg-section/40" role="main">
         <div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-6 md:px-6 lg:px-0 lg:py-8">
@@ -542,7 +544,7 @@ export default function LoggedInHomePage() {
           </section>
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

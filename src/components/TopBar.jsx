@@ -6,14 +6,18 @@ import AlertsPanel from './AlertsPanel';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { label: 'Home', path: '/' },
-  { label: 'Datasets', path: '/datasets' },
-  { label: 'Reports', path: '/reports' },
+  { label: 'My Profile', path: '/' },
+  {
+    label: 'Home',
+    path: 'https://realsoftapps.com/RealDataPortal_Demo/home/landing',
+  },
   { label: 'My Queries', path: '/my-queries' },
-  { label: 'AI Assistant', path: '/ai-assistant' },
-  { label: 'Admin', path: '/admin/personas' },
+  {
+    label: 'Datasets',
+    path: 'https://realsoftapps.com/Portal_Development/home/indicator',
+  },
   { label: 'Help', path: '/help' },
-  { label: 'Search', path: '/search' },
+  { label: 'AI Assistant', path: '/ai-assistant' },
 ];
 
 export default function TopBar() {
@@ -26,7 +30,8 @@ export default function TopBar() {
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target))
+        setMoreOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -38,35 +43,21 @@ export default function TopBar() {
   };
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-4 px-4 md:px-6 lg:px-[100px] py-2 bg-[#182f5b] w-full" role="banner">
+    <header
+      className="inner-header flex h-14 shrink-0 items-center justify-between gap-4 px-4 md:px-6 lg:px-[100px] py-2 bg-[#182f5b] w-full"
+      role="banner"
+    >
       <div className="flex min-w-0 flex-1 items-center gap-6">
-        <NavLink to="/" className="h-9 w-28 shrink-0">
+        <NavLink to="/" className="w-145 shrink-0">
           <img
-            src="https://placehold.co/145x48/182f5b/ffffff?text=NCSI"
+            src="/src/images/ncis-logo.svg"
             alt="National Centre for Statistics & Information"
             className="h-full w-full object-contain object-left"
           />
         </NavLink>
-        <nav className="hidden items-center gap-0 sm:flex" aria-label="Main navigation">
-          {navItems.map(({ label, path }) => {
-            const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
-            return (
-              <NavLink
-                key={path}
-                to={path}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded transition-colors whitespace-nowrap ${
-                  active ? 'text-white underline decoration-2 underline-offset-2' : 'text-white/90 hover:text-white'
-                }`}
-              >
-                {label}
-              </NavLink>
-            );
-          })}
-        </nav>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {/* Alerts icon only */}
-        <AlertsPanel variant="dark" />
+        {/* <AlertsPanel variant="dark" />
         <button type="button" className="hidden text-sm font-medium text-white/90 hover:text-white sm:block" aria-label="Arabic (coming soon)">
           عربي
         </button>
@@ -94,7 +85,7 @@ export default function TopBar() {
             </Link>
           </>
         )}
-        {/* \"More\" menu (all screens) – shows persona + event */}
+
         <div className="relative" ref={moreRef}>
           <button
             type="button"
@@ -117,7 +108,31 @@ export default function TopBar() {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
+
+        <nav
+          className="hidden items-center gap-0 sm:flex"
+          aria-label="Main navigation"
+        >
+          {navItems.map(({ label, path }) => {
+            const active =
+              location.pathname === path ||
+              (path !== '/' && location.pathname.startsWith(path));
+            return (
+              <NavLink
+                key={path}
+                to={path}
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded transition-colors whitespace-nowrap f-16 ${
+                  active
+                    ? 'text-white underline decoration-2 underline-offset-2'
+                    : 'text-white/90 hover:text-white'
+                }`}
+              >
+                {label}
+              </NavLink>
+            );
+          })}
+        </nav>
       </div>
     </header>
   );
