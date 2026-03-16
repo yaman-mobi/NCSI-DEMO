@@ -684,9 +684,15 @@ export default function ReportBuilderPage() {
               </button>
             </div>
             {summarizing && !summaryResult && (
-              <div className="mt-6 flex items-center gap-3 rounded-lg bg-portal-ai-bg px-3 py-2">
-                <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-portal-blue-primary border-t-transparent" />
-                <span className="text-sm text-portal-gray">NCSI AI is preparing an executive brief…</span>
+              <div className="mt-6 flex items-center gap-3 rounded-xl border border-portal-border bg-gradient-to-r from-[#a624d2]/5 to-[#3a70d8]/5 px-4 py-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#a624d2] to-[#3a70d8] text-white">
+                  <IconSparkle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-portal-navy-dark">AI is analyzing your report…</p>
+                  <p className="text-xs text-portal-gray">Extracting key points and generating an executive brief</p>
+                </div>
+                <span className="ml-auto h-5 w-5 animate-spin rounded-full border-2 border-[#a624d2] border-t-transparent" />
               </div>
             )}
             {summaryResult && (
