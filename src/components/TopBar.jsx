@@ -6,7 +6,6 @@ import AlertsPanel from './AlertsPanel';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { label: 'My Profile', path: '/' },
   {
     label: 'Home',
     path: 'https://realsoftapps.com/RealDataPortal_Demo/home/landing',
@@ -19,6 +18,7 @@ const navItems = [
   { label: 'Help', path: '/help' },
   { label: 'AI Assistant', path: '/ai-assistant' },
 ];
+
 
 export default function TopBar() {
   const [moreOpen, setMoreOpen] = useState(false);
@@ -41,6 +41,10 @@ export default function TopBar() {
     signOut();
     navigate('/', { replace: true });
   };
+
+  const menuItems = isAuthenticated
+  ? [{ label: 'My Profile', path: '/' }, ...navItems]
+  : navItems;
 
   return (
     <header
@@ -114,7 +118,7 @@ export default function TopBar() {
           className="hidden items-center gap-0 sm:flex"
           aria-label="Main navigation"
         >
-          {navItems.map(({ label, path }) => {
+          {menuItems.map(({ label, path }) => {
             const active =
               location.pathname === path ||
               (path !== '/' && location.pathname.startsWith(path));
