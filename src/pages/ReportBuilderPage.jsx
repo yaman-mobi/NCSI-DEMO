@@ -436,32 +436,9 @@ export default function ReportBuilderPage() {
     <div className="flex min-h-screen w-full flex-col bg-portal-bg-section">
       <TopBar />
       <div className="flex h-[calc(100vh-3.5rem)] flex-col" id="main-content">
-      {/* Top bar: NCSI navy strip (matches landing TopBar) */}
-      <div className="flex h-11 shrink-0 items-center justify-between bg-portal-navy px-6 py-2 text-sm">
-        <div className="flex items-center gap-3">
-          <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" aria-hidden />
-          <span className="text-white/90">Live · Maker–Checker</span>
-          <div className="flex -space-x-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-portal-navy bg-white text-[10px] font-bold text-portal-blue-primary" title="Data Analyst">A</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-portal-navy bg-portal-card-teal text-[10px] font-bold text-[#085d3a]" title="Senior Researcher">R</span>
-          </div>
-          <span className="text-white/90">Editing as (Maker / Checker)</span>
-          <select
-            value={editorRole}
-            onChange={(e) => setEditorRole(e.target.value)}
-            className="rounded border border-white/30 bg-portal-navy px-2 py-0.5 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
-            aria-label="Editor role"
-          >
-            <option value="Data Analyst" className="bg-white text-portal-navy-dark">Data Analyst</option>
-            <option value="Senior Researcher" className="bg-white text-portal-navy-dark">Senior Researcher</option>
-          </select>
-        </div>
-        <span className="text-xs text-white/80">Open this report in another tab to demonstrate Maker (Data Analyst) and Checker (Senior Researcher) co-authoring with AI.</span>
-      </div>
-
-      {/* Main header – NCSI style: same as landing (navy accents, portal-blue, font-display) */}
+      {/* Main header – report title + Live/role controls */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-portal-border bg-white px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => navigate('/reports')}
@@ -479,39 +456,59 @@ export default function ReportBuilderPage() {
             placeholder="Untitled Report"
             aria-label="Report title"
           />
+          {/* Live + role selector – next to title */}
+          <div className="flex items-center gap-2 rounded-lg border border-portal-border-light bg-portal-bg-section/60 px-3 py-1.5">
+            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden />
+            <span className="text-xs font-medium text-portal-navy">Live</span>
+            <div className="flex -space-x-1.5">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white text-[9px] font-bold text-portal-blue-primary shadow-sm" title="Data Analyst">A</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-portal-card-teal text-[9px] font-bold text-[#085d3a] shadow-sm" title="Senior Researcher">R</span>
+            </div>
+            <select
+              value={editorRole}
+              onChange={(e) => setEditorRole(e.target.value)}
+              className="rounded border-0 bg-transparent py-0.5 pr-5 text-xs font-medium text-portal-navy focus:outline-none focus:ring-0"
+              aria-label="Editor role"
+            >
+              <option value="Data Analyst" className="bg-white text-portal-navy-dark">Data Analyst</option>
+              <option value="Senior Researcher" className="bg-white text-portal-navy-dark">Senior Researcher</option>
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        {sections.length === 0 && (
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowAddSectionMenu(!showAddSectionMenu)}
+                className="flex items-center gap-1.5 rounded border border-portal-navy bg-white px-3 py-2 text-sm font-medium text-portal-blue-primary hover:bg-portal-bg-section focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
+                aria-expanded={showAddSectionMenu}
+                aria-haspopup="true"
+                aria-label="Add section"
+              >
+                + Add Section
+              </button>
+              {showAddSectionMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowAddSectionMenu(false)} aria-hidden />
+                  <div className="absolute left-0 top-full z-20 mt-1 w-48 rounded-lg border border-portal-border bg-white py-1 shadow-lg" role="menu" aria-label="Add section">
+                    <button type="button" role="menuitem" onClick={() => { handleAddSection('text'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Text</button>
+                    <button type="button" role="menuitem" onClick={() => { handleAddSection('title'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Title</button>
+                    <button type="button" role="menuitem" onClick={() => { handleAddSection('table'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Table</button>
+                    <button type="button" role="menuitem" onClick={() => { handleAddSection('chart'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Chart</button>
+                  </div>
+                </>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setShowAddSectionMenu(!showAddSectionMenu)}
-              className="flex items-center gap-1.5 rounded border border-portal-navy bg-white px-3 py-2 text-sm font-medium text-portal-blue-primary hover:bg-portal-bg-section focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
-              aria-expanded={showAddSectionMenu}
-              aria-haspopup="true"
-              aria-label="Add section"
+              onClick={() => { setShowPromptBar(true); setShowAddSectionMenu(false); }}
+              className="flex items-center gap-1.5 rounded bg-gradient-to-r from-[#a624d2] to-[#3a70d8] px-3 py-2 text-sm font-medium text-white hover:opacity-95"
             >
-              + Add Section
+              <IconSparkle className="h-5 w-5" /> AI Generate
             </button>
-            {showAddSectionMenu && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowAddSectionMenu(false)} aria-hidden />
-                <div className="absolute left-0 top-full z-20 mt-1 w-48 rounded-lg border border-portal-border bg-white py-1 shadow-lg" role="menu" aria-label="Add section">
-                  <button type="button" role="menuitem" onClick={() => { handleAddSection('text'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Text</button>
-                  <button type="button" role="menuitem" onClick={() => { handleAddSection('title'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Title</button>
-                  <button type="button" role="menuitem" onClick={() => { handleAddSection('table'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Table</button>
-                  <button type="button" role="menuitem" onClick={() => { handleAddSection('chart'); setShowAddSectionMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-portal-navy-dark hover:bg-portal-bg-section">Chart</button>
-                </div>
-              </>
-            )}
           </div>
-          <button
-            type="button"
-            onClick={() => { setShowPromptBar(true); setShowAddSectionMenu(false); }}
-            className="flex items-center gap-1.5 rounded bg-gradient-to-r from-[#a624d2] to-[#3a70d8] px-3 py-2 text-sm font-medium text-white hover:opacity-95"
-          >
-            <IconSparkle className="h-5 w-5" /> AI Generate
-          </button>
-        </div>
+        )}
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -547,14 +544,16 @@ export default function ReportBuilderPage() {
             type="button"
             onClick={handleSummarize}
             disabled={summarizing || (report?.sections || []).length === 0}
-            className="flex items-center gap-2 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-transparent bg-gradient-to-r from-[#a624d2]/10 to-[#3a70d8]/10 px-3 py-2 text-portal-navy hover:from-[#a624d2]/20 hover:to-[#3a70d8]/20 disabled:opacity-50 disabled:hover:from-[#a624d2]/10 disabled:hover:to-[#3a70d8]/10"
             title="AI Summarize report"
-            aria-label="Summarize report"
+            aria-label="AI Summarize report"
           >
-            {summarizing ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-portal-blue-primary border-t-transparent" /> : (
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            {summarizing ? (
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#a624d2] border-t-transparent" />
+            ) : (
+              <IconSparkle className="h-5 w-5 text-[#a624d2]" />
             )}
-            <span className="text-sm font-medium">{summarizing ? 'Summarizing…' : 'Summarize'}</span>
+            <span className="text-sm font-medium">{summarizing ? 'Summarizing…' : 'AI Summarize'}</span>
           </button>
           <button
             type="button"
@@ -588,7 +587,7 @@ export default function ReportBuilderPage() {
               aria-label="Export report"
             >
               {exporting ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-portal-blue-primary border-t-transparent" aria-hidden /> : (
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4z"/></svg>
               )}
               <span className="text-sm font-medium">Export</span>
             </button>
@@ -1243,6 +1242,74 @@ function parseTableContent(content) {
   }
 }
 
+/** Format options for text/title sections */
+const FONT_SIZES = [
+  { value: 'sm', label: 'Small', short: 'S' },
+  { value: 'base', label: 'Medium', short: 'M' },
+  { value: 'lg', label: 'Large', short: 'L' },
+];
+
+const TEXT_COLORS = [
+  { value: 'navy', label: 'Navy', color: '#161616' },
+  { value: 'blue', label: 'Blue', color: '#005287' },
+  { value: 'gray', label: 'Gray', color: '#6b7280' },
+  { value: 'green', label: 'Green', color: '#085d3a' },
+];
+
+function getFormatClasses(format) {
+  if (!format || Object.keys(format).length === 0) return '';
+  const sizeClass = format.fontSize === 'sm' ? 'text-sm' : format.fontSize === 'lg' ? 'text-lg' : 'text-base';
+  const colorClass = format.color === 'blue' ? 'text-portal-blue' : format.color === 'gray' ? 'text-portal-gray' : format.color === 'green' ? 'text-[#085d3a]' : 'text-portal-navy-dark';
+  return `${sizeClass} ${colorClass}`;
+}
+
+function FormatToolbar({ format, onChange, onSave }) {
+  const fontSize = format?.fontSize || 'base';
+  const color = format?.color || 'navy';
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border border-portal-border bg-white px-4 py-2.5 shadow-premium">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-gray-muted">Size</span>
+        <div className="flex items-center gap-0.5 rounded-lg bg-portal-bg-section/80 p-0.5">
+          {FONT_SIZES.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => { onChange({ ...format, fontSize: f.value }); onSave?.(); }}
+              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${fontSize === f.value ? 'bg-white text-portal-blue shadow-sm' : 'text-portal-gray-muted hover:text-portal-navy'}`}
+              title={f.label}
+            >
+              {f.short}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="h-5 w-px bg-portal-border" />
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-gray-muted">Color</span>
+        <div className="flex items-center gap-1.5">
+          {TEXT_COLORS.map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => { onChange({ ...format, color: c.value }); onSave?.(); }}
+              className={`flex h-7 w-7 items-center justify-center rounded-lg border-2 transition-all ${color === c.value ? 'border-portal-blue shadow-md ring-2 ring-portal-blue/20' : 'border-transparent hover:border-portal-border'}`}
+              style={{ backgroundColor: c.color }}
+              title={c.label}
+            >
+              {color === c.value && (
+                <svg className="h-3.5 w-3.5 text-white drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReportSectionCard({
   section,
   sectionIndex = 0,
@@ -1270,6 +1337,7 @@ function ReportSectionCard({
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(section.title);
   const [editContent, setEditContent] = useState(section.content);
+  const [editFormat, setEditFormat] = useState(section.format || {});
   const [showRegenPrompt, setShowRegenPrompt] = useState(false);
   const [regenPrompt, setRegenPrompt] = useState('');
   const [regenerating, setRegenerating] = useState(false);
@@ -1277,7 +1345,8 @@ function ReportSectionCard({
   useEffect(() => {
     setEditTitle(section.title);
     setEditContent(section.content);
-  }, [section.id, section.title, section.content]);
+    setEditFormat(section.format || {});
+  }, [section.id, section.title, section.content, section.format]);
 
   const startEditing = () => {
     if (isLockedByOther) return;
@@ -1285,9 +1354,12 @@ function ReportSectionCard({
     onLock?.();
   };
   const saveAndUnlock = () => {
-    onUpdate({ title: editTitle, content: editContent });
+    onUpdate({ title: editTitle, content: editContent, format: Object.keys(editFormat).length ? editFormat : undefined });
     setEditing(false);
     onUnlock?.();
+  };
+  const applyFormatToSection = () => {
+    onUpdate({ format: Object.keys(editFormat).length ? editFormat : undefined });
   };
 
   const isTitleOnly = section.content === '__TITLE_ONLY__';
@@ -1314,21 +1386,26 @@ function ReportSectionCard({
   const save = saveAndUnlock;
 
   if (isTitleOnly) {
+    const fmt = section.format || {};
+    const fmtClasses = getFormatClasses(fmt);
     return (
       <div
         onClick={onActivate}
-        className={`rounded-[10px] border-2 bg-white p-4 ${isActive ? 'border-portal-blue-primary' : 'border-portal-border'}`}
+        className={`rounded-[10px] border-2 bg-white p-4 shadow-card ${isActive ? 'border-portal-blue-primary' : 'border-portal-border'}`}
       >
-            {editing ? (
-              <input
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                onBlur={save}
-                className="w-full border-0 border-b border-portal-border-light bg-transparent font-display text-xl font-bold focus:outline-none"
-                autoFocus
-              />
-            ) : (
-              <h2 className="font-display text-xl font-bold text-portal-navy-dark" onDoubleClick={startEditing}>
+        {editing ? (
+          <>
+            <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={save}
+              className="w-full border-0 border-b border-portal-border-light bg-transparent font-display text-xl font-bold focus:outline-none"
+              autoFocus
+            />
+          </>
+        ) : (
+          <h2 className={`font-display font-bold ${fmtClasses || 'text-xl text-portal-navy-dark'}`} onDoubleClick={startEditing}>
             {section.title}
           </h2>
         )}
@@ -1402,7 +1479,7 @@ function ReportSectionCard({
                 autoFocus
               />
             ) : (
-              <h3 className="font-display text-lg font-bold leading-5 tracking-[-0.5px] text-portal-navy-dark" onDoubleClick={startEditing}>
+              <h3 className={`font-display font-bold leading-5 tracking-[-0.5px] ${getFormatClasses(section.format) || 'text-lg text-portal-navy-dark'}`} onDoubleClick={startEditing}>
                 {section.title}
               </h3>
             )}
@@ -1567,17 +1644,49 @@ function ReportSectionCard({
       <div className="px-4 pb-4">
       {editing ? (
         <>
+          {!isChart && !isTable && (
+            <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
+          )}
           {isChart && (
-            <p className="mt-2 text-xs text-portal-gray">Chart content: __CHART__|bar|governorates or __CHART__|line|gdpGrowth or __CHART__|line|unemployment</p>
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-portal-border bg-white px-4 py-2.5 shadow-premium">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-gray-muted">Chart type</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { type: 'bar', ds: 'governorates', label: 'Bar · Governorates' },
+                  { type: 'line', ds: 'governorates', label: 'Line · Governorates' },
+                  { type: 'line', ds: 'unemployment', label: 'Line · Unemployment' },
+                  { type: 'line', ds: 'gdpGrowth', label: 'Line · GDP Growth' },
+                ].map(({ type, ds, label }) => {
+                  const val = `__CHART__|${type}|${ds}`;
+                  const isActive = editContent === val;
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => { setEditContent(val); onUpdate({ content: val }); }}
+                      className={`rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all ${isActive ? 'bg-portal-blue text-white shadow-sm' : 'bg-portal-bg-section/80 text-portal-navy hover:bg-portal-blue/10'}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
           {isTable && (
-            <p className="mt-2 text-xs text-portal-gray">Table: JSON array of rows, e.g. [["Header1","Header2"],["A","B"]]</p>
+            <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
+          )}
+          {isChart && (
+            <p className="mt-1 text-[11px] text-portal-gray-muted">Advanced: edit raw format above</p>
+          )}
+          {isTable && (
+            <p className="mt-1 text-[11px] text-portal-gray-muted">JSON array of rows, e.g. [["Header1","Header2"],["A","B"]]</p>
           )}
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             onBlur={save}
-            className="mt-2 min-h-[80px] w-full rounded border border-portal-border-light p-2 text-sm focus:outline-none font-mono"
+            className="mt-3 min-h-[80px] w-full rounded-xl border border-portal-border bg-white px-4 py-3 text-sm transition-all focus:border-portal-blue focus:outline-none focus:ring-2 focus:ring-portal-blue/10 font-mono"
             rows={4}
           />
         </>
@@ -1588,7 +1697,7 @@ function ReportSectionCard({
         </div>
       ) : isTable && tableRows ? (
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className={`w-full border-collapse ${getFormatClasses(section.format) || 'text-sm'}`}>
             <tbody>
               {tableRows.map((row, i) => (
                 <tr key={i}>
@@ -1602,7 +1711,7 @@ function ReportSectionCard({
         </div>
       ) : (
         <>
-          <p className="text-sm text-portal-gray whitespace-pre-wrap leading-relaxed" onDoubleClick={startEditing}>
+          <p className={`whitespace-pre-wrap leading-relaxed ${getFormatClasses(section.format) || 'text-sm text-portal-navy-dark'}`} onDoubleClick={startEditing}>
             {section.content}
           </p>
         </>
