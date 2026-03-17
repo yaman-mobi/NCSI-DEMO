@@ -4,6 +4,8 @@ import PersonaSwitcher from './PersonaSwitcher';
 import EventSimulator from './EventSimulator';
 import AlertsPanel from './AlertsPanel';
 import { useAuth } from '../context/AuthContext';
+import logo from '../images/ncis-logo.svg';
+
 
 const navItems = [
   {
@@ -54,7 +56,7 @@ export default function TopBar() {
       <div className="flex min-w-0 flex-1 items-center gap-6">
         <NavLink to="/" className="w-145 shrink-0">
           <img
-            src="/src/images/ncis-logo.svg"
+            src={logo}
             alt="National Centre for Statistics & Information"
             className="h-full w-full object-contain object-left"
           />
