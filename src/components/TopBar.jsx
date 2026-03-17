@@ -13,7 +13,7 @@ const navItems = [
   { label: 'My Queries', path: '/my-queries' },
   {
     label: 'Datasets',
-    path: 'https://realsoftapps.com/Portal_Development/home/indicator',
+    path: 'https://realsoftapps.com/RealDataPortal_Demo/home/indicator',
   },
   { label: 'Help', path: '/help' },
   { label: 'AI Assistant', path: '/ai-assistant' },
