@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import TopBar from '../components/TopBar';
 import Footer from '../components/Footer';
@@ -152,6 +152,7 @@ const MOCK_FEED_ITEMS = [
 ];
 
 export default function LoggedInHomePage() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { currentPersona } = usePersona();
   const greeting = getTimeGreeting();
@@ -460,7 +461,7 @@ export default function LoggedInHomePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {}}
+                  onClick={() => navigate('/report/new')}
                   className="mt-4 flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-portal-blue to-portal-blue-dark px-4 py-2.5 text-sm font-semibold text-white shadow hover:opacity-95"
                 >
                   + Create Report
