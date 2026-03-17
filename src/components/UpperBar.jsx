@@ -6,8 +6,17 @@ import {
   FaWhatsapp,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
+import { useAuth } from '../context/AuthContext';
 
 export default function UpperBar() {
+  const { user, profile, signOut, isAuthenticated } = useAuth();
+  const displayName = user?.fullName || user?.email?.split('@')[0] || 'User';
+
+  const handleLogout = () => {
+    signOut();
+    navigate('/', { replace: true });
+  };
+
   return (
     <div className="w-full bg-gray-100 border-b border-gray-200">
       <div className="flex items-center justify-between px-4 md:px-6 lg:px-[100px] h-9 text-sm">
@@ -36,19 +45,36 @@ export default function UpperBar() {
             🌐 عربي
           </button>
 
-          <Link
-            to="/register"
-            className="flex items-center gap-1 hover:text-black"
-          >
-            Register
-          </Link>
-
-          <Link
-            to="/login"
-            className="flex items-center gap-1 bg-[#182f5b] text-white px-3 py-1 rounded hover:bg-[#0f2347]"
-          >
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <span className="hidden text-sm text-black/90 sm:block">
+                Hi,{' '}
+                <span className="font-medium">{displayName}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded border border-black/30 bg-black/10 px-3 py-1.5 text-sm font-medium text-black hover:bg-black/20"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/register"
+                className="hidden text-sm font-medium text-white/90 hover:text-white sm:block"
+              >
+                Register
+              </Link>
+              <Link
+                to="/login"
+                className="rounded border border-white/30 bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+              >
+                Login
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
