@@ -630,7 +630,7 @@ export default function ReportBuilderPage() {
                     role="menuitem"
                     onClick={() => {
                       if (!report) return;
-                      const baseUrl = window.location.origin || '';
+                      const baseUrl = `${window.location.origin}${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}`;
                       const src = `${baseUrl}/report/${report.id}`;
                       const snippet = `<iframe src="${src}" style="width:100%;height:800px;border:0;" title="NCSI report"></iframe>`;
                       try {
@@ -1728,7 +1728,8 @@ function ReportSectionCard({
 }
 
 function ShareReportDialog({ report, onClose }) {
-  const link = `${window.location.origin}/report/${report.id}`;
+  const baseUrl = `${window.location.origin}${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}`;
+  const link = `${baseUrl}/report/${report.id}`;
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(link);
