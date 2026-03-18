@@ -110,6 +110,10 @@ body {
 
 .active.underline {
   text-decoration-line: none;
-    border-bottom: 1px solid;
-  border-radius: 0;
+  border-bottom: 1px solid;
+  border-radius: 0 !important;
+}
+
+.ht-44 {
+  height: 44px;
 }

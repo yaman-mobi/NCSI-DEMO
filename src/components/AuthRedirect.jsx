@@ -10,7 +10,9 @@ export default function AuthRedirect({ children }) {
   const location = useLocation();
 
   useEffect(() => {
-    if (!user || hasCompletedOnboarding) return;
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (!user || hasCompletedOnboarding || !accessToken) return;
     if (SKIP_ONBOARDING_PATHS.some((p) => location.pathname === p)) return;
     navigate('/onboarding', { replace: true });
   }, [user, hasCompletedOnboarding, location.pathname, navigate]);

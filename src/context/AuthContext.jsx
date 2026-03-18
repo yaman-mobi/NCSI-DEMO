@@ -5,6 +5,9 @@ const PROFILE_STORAGE_KEY = 'ncsi_smart_portal_user_profile';
 
 function loadStoredAuth() {
   try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
@@ -117,6 +120,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setProfileState(null);
     saveAuth(null);
+    localStorage.removeItem('accessToken');
   }, []);
 
   const value = {
