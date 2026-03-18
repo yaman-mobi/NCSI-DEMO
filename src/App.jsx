@@ -23,7 +23,7 @@ export default function App() {
   return (
     <AuthProvider>
       <PersonaProvider>
-        <BrowserRouter basename={(import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/'}>
+         <BrowserRouter basename="/ncsi_demo/">
           <ErrorBoundary>
             <AuthRedirect>
               <Routes>
