@@ -20,10 +20,12 @@ import ReportBuilderPage from './pages/ReportBuilderPage';
 import InsightDetailPage from './pages/InsightDetailPage';
 
 export default function App() {
+  const base = import.meta.env.BASE_URL || '/';
+  console.log('base', base)
   return (
     <AuthProvider>
       <PersonaProvider>
-         <BrowserRouter basename="/ncsi_demo/">
+         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <ErrorBoundary>
             <AuthRedirect>
               <Routes>
