@@ -1,20 +1,33 @@
-#Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# RealData Portal
 
-#Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+A full-stack data portal UI based on the [RealData Portal Figma design](https://www.figma.com/design/eoRswB7HVwDzioFqhW9kf8/RealData-Portal?node-id=151-82).
 
-#Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+## Stack
 
-#Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+- **React 18** + **Vite**
+- **React Router** for navigation
+- **Tailwind CSS** for styling
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://www.visualstudio.com/en-us/docs/git/create-a-readme). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173).
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Structure
+
+- `src/components/` – Layout, Sidebar, Header
+- `src/pages/` – Dashboard, Data Explorer, Reports, Settings
+- `src/App.jsx` – Routes
+
+To match the Figma design pixel-perfect, adjust colors and spacing in `tailwind.config.js` and component classes using your design tokens.
