@@ -1238,9 +1238,6 @@ export default function AIAssistantPage() {
             <h1 className="font-display text-xl font-extrabold tracking-tight text-[#161616] lg:text-[22px]">
               AI Data Assistant
             </h1>
-            <span className="rounded-full bg-gradient-to-r from-portal-ai-bg to-portal-blue/10 px-3 py-1 text-xs font-medium text-portal-blue-dark">
-              For {personaName}
-            </span>
           </div>
           <button
             type="button"
