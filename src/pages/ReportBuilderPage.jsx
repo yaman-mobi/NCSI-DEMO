@@ -40,6 +40,31 @@ const CHART_UPDATE_STEPS = [
   'Updating visualization',
 ];
 
+/** Copy text to clipboard; works in secure and insecure contexts */
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) {
+    return false;
+  }
+}
+
 /** Detect if prompt is asking to change a chart; return { sectionId, newContent } or null */
 function parseChartChangePrompt(prompt, sections) {
   const p = (prompt || '').toLowerCase().trim();
@@ -188,7 +213,14 @@ export default function ReportBuilderPage() {
         try {
           const data = JSON.parse(e.newValue);
           if (data.reportId === reportIdRef.current && data.userName !== editorRole)
-            setPresence((prev) => ({ ...prev, [data.sectionId]: { name: data.userName, updatedAt: data.updatedAt } }));
+            setPresence((prev) => {
+              const next = {};
+              for (const sid of Object.keys(prev)) {
+                if (prev[sid].name !== data.userName) next[sid] = prev[sid];
+              }
+              next[data.sectionId] = { name: data.userName, updatedAt: data.updatedAt };
+              return next;
+            });
         } catch (_) {}
         return;
       }
@@ -683,17 +715,15 @@ export default function ReportBuilderPage() {
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!report) return;
                       const baseUrl = `${window.location.origin}${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}`;
-                      const src = `${baseUrl}/report/${report.id}`;
+                      const payload = { title: report.title, sections: report.sections || [] };
+                      const data = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                      const src = `${baseUrl}/report/embed?data=${data}`;
                       const snippet = `<iframe src="${src}" style="width:100%;height:800px;border:0;" title="NCSI report"></iframe>`;
-                      try {
-                        navigator.clipboard.writeText(snippet);
-                        showToast('Iframe embed code copied to clipboard.');
-                      } catch (_) {
-                        showToast('Could not copy iframe. Please copy manually.');
-                      }
+                      const ok = await copyToClipboard(snippet);
+                      showToast(ok ? 'Iframe embed code copied to clipboard.' : 'Could not copy iframe. Please copy manually.');
                       setShowExportMenu(false);
                     }}
                     className="w-full px-4 py-2 text-left text-sm font-medium text-portal-navy-dark hover:bg-portal-bg-section"
@@ -706,6 +736,22 @@ export default function ReportBuilderPage() {
           </div>
         </div>
       </header>
+      {/* Presence: show when another person is editing a section */}
+      {Object.keys(presence).length > 0 && (
+        <div className="flex shrink-0 items-center gap-2 px-6 py-1.5 bg-amber-50 border-b border-amber-200/60 text-sm">
+          <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" aria-hidden />
+          {Object.entries(presence).map(([sectionId, info], idx) => {
+            const sec = sections.find((s) => s.id === sectionId);
+            const sectionTitle = sec?.title || 'a section';
+            return (
+              <span key={sectionId}>
+                {idx > 0 && <span className="text-amber-400 mx-1">·</span>}
+                <span className="text-amber-800"><strong>{info.name}</strong> is editing {sectionTitle}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {showShare && report && (
         <ShareReportDialog
@@ -776,7 +822,7 @@ export default function ReportBuilderPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!summaryResult) return;
                     const text = [
                       summaryResult.summary ?? '',
@@ -784,12 +830,8 @@ export default function ReportBuilderPage() {
                     ]
                       .filter(Boolean)
                       .join('\n\n• ');
-                    try {
-                      navigator.clipboard.writeText(text);
-                      showToast('Executive summary copied to clipboard.');
-                    } catch (_) {
-                      showToast('Could not copy summary. Please copy manually.');
-                    }
+                    const ok = await copyToClipboard(text);
+                    showToast(ok ? 'Executive summary copied to clipboard.' : 'Could not copy summary. Please copy manually.');
                   }}
                   className="rounded-full border border-portal-border bg-white px-3 py-1.5 text-xs font-medium text-portal-navy hover:bg-portal-bg-section"
                 >
@@ -970,6 +1012,7 @@ export default function ReportBuilderPage() {
                         onUnlock={() => unlockSection(report.id, sec.id)}
                         isLockedByOther={sec.lockedBy && sec.lockedBy !== editorRole}
                         lockedByName={sec.lockedBy || null}
+                        presenceInfo={presence[sec.id]}
                       />
                     </div>
                   );})}
@@ -1645,6 +1688,7 @@ function ReportSectionCard({
   onDragStart,
   onDragEnd,
   isDragging,
+  presenceInfo,
 }) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(section.title);
@@ -1712,6 +1756,12 @@ function ReportSectionCard({
         onClick={onActivate}
         className={`rounded-[10px] border-2 bg-white p-4 shadow-card ${isActive ? 'border-portal-blue-primary' : 'border-portal-border'}`}
       >
+        {presenceInfo && (
+          <div className="mb-2 flex items-center gap-1.5 text-xs text-amber-600">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+            {presenceInfo.name} is editing
+          </div>
+        )}
         {editing ? (
           <div ref={editAreaRef} onClick={(e) => e.stopPropagation()}>
             <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
@@ -1807,6 +1857,12 @@ function ReportSectionCard({
             )}
           </div>
           <div className={`relative flex items-center gap-1 shrink-0 transition-opacity duration-150 ${isHovered || isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            {presenceInfo && (
+              <span className="flex items-center gap-1 text-xs text-amber-600" title={`${presenceInfo.name} is editing this section`}>
+                <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+                {presenceInfo.name} is editing
+              </span>
+            )}
             {lockedByName && isLockedByOther && (
               <span className="flex items-center gap-1 text-xs text-amber-600" title={`Locked by ${lockedByName}`}>
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
@@ -2067,14 +2123,28 @@ function ReportSectionCard({
   );
 }
 
+/** Encode report for URL (portable – works anywhere, no backend) */
+function encodeReportForUrl(report) {
+  const payload = { title: report.title, sections: report.sections || [] };
+  const json = JSON.stringify(payload);
+  const base64 = btoa(unescape(encodeURIComponent(json)));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 function ShareReportDialog({ report, onClose }) {
   const baseUrl = `${window.location.origin}${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}`;
   const link = `${baseUrl}/report/${report.id}`;
+  const embedLink = `${baseUrl}/report/${report.id}/embed`;
+  const portableData = encodeReportForUrl(report);
+  const portableEmbedLink = `${baseUrl}/report/embed?data=${portableData}`;
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const copy = async () => {
+    const ok = await copyToClipboard(link);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
   const openInNewTab = () => {
     window.open(link, '_blank', 'noopener,noreferrer');
@@ -2082,18 +2152,49 @@ function ShareReportDialog({ report, onClose }) {
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-portal-border bg-white p-6">
+      <div className="w-full max-w-md rounded-xl border border-portal-border bg-white p-6 max-h-[90vh] overflow-y-auto">
         <h3 className="font-display text-lg font-bold tracking-[-0.5px] text-portal-navy-dark">Share & collaborate</h3>
-        <p className="mt-1 text-sm text-portal-gray">Share the link or open in another tab to edit at the same time. Changes sync automatically.</p>
-        <div className="mt-4 flex gap-2">
-          <input readOnly value={link} className="flex-1 rounded border border-portal-border-light px-3 py-2 text-sm" />
-          <button type="button" onClick={copy} className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark">
-            {copied ? 'Copied' : 'Copy'}
-          </button>
+        <p className="mt-1 text-sm text-portal-gray">Share the edit link to collaborate, or the view-only embed for other websites.</p>
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-portal-navy-dark mb-1">Edit link (full access – toolbar, co-edit)</p>
+          <div className="flex gap-2">
+            <input readOnly value={link} className="flex-1 rounded border border-portal-border-light px-3 py-2 text-sm min-w-0" />
+            <button type="button" onClick={copy} className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark shrink-0">
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
         </div>
         <button type="button" onClick={openInNewTab} className="mt-3 w-full rounded border border-portal-blue-primary px-4 py-2 text-sm font-medium text-portal-blue-primary hover:bg-portal-bg-section">
           Open in new tab to collaborate
         </button>
+        <div className="mt-4 pt-4 border-t border-portal-border">
+          <p className="text-xs font-semibold text-portal-navy-dark mb-1">View-only embed – works anywhere</p>
+          <p className="text-[11px] text-portal-gray mb-2">Portable link with report data in URL. Embed on any website, any origin – no backend needed.</p>
+          <div className="flex gap-2">
+            <input readOnly value={portableEmbedLink} className="flex-1 rounded border border-portal-border-light px-3 py-2 text-sm min-w-0" />
+            <button
+              type="button"
+              onClick={async () => {
+                const snippet = `<iframe src="${portableEmbedLink}" style="width:100%;height:800px;border:0;" title="NCSI report"></iframe>`;
+                const ok = await copyToClipboard(snippet);
+                if (ok) {
+                  setEmbedCopied(true);
+                  setTimeout(() => setEmbedCopied(false), 2000);
+                }
+              }}
+              className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark shrink-0"
+            >
+              {embedCopied ? 'Copied' : 'Copy iframe'}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => { window.open(portableEmbedLink, '_blank', 'noopener,noreferrer'); }}
+            className="mt-2 text-xs font-medium text-portal-blue-primary hover:underline"
+          >
+            Open embed in new tab to test
+          </button>
+        </div>
         <button type="button" onClick={onClose} className="mt-4 text-sm font-medium text-portal-blue-primary">Close</button>
       </div>
     </div>
@@ -2126,3 +2227,14 @@ function AddCommentForm({ sectionId, onSubmit }) {
     </div>
   );
 }
+
+export {
+  parseChartContent,
+  parseTableContent,
+  OmanBarChart,
+  OmanLineChart,
+  OmanAreaChart,
+  OmanPieChart,
+  OmanScatterChart,
+  OmanFunnelChart,
+};

@@ -17,6 +17,7 @@ import AddIndicatorPage from './pages/AddIndicatorPage';
 import AdminPersonasPage from './pages/AdminPersonasPage';
 import ReportsListPage from './pages/ReportsListPage';
 import ReportBuilderPage from './pages/ReportBuilderPage';
+import ReportEmbedPage from './pages/ReportEmbedPage';
 import InsightDetailPage from './pages/InsightDetailPage';
 
 export default function App() {
@@ -42,6 +43,8 @@ export default function App() {
                   <Route path="/admin/personas" element={<AdminPersonasPage />} />
                   <Route path="/insights/:id" element={<InsightDetailPage />} />
                 </Route>
+                <Route path="/report/embed" element={<ReportEmbedPage />} />
+                <Route path="/report/:id/embed" element={<ReportEmbedPage />} />
                 <Route path="/report/:id" element={<ReportBuilderPage />} />
               </Routes>
             </AuthRedirect>

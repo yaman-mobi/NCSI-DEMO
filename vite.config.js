@@ -4,4 +4,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   base: mode === 'production' ? '/ncsi_demo/' : '/',
+  server: {
+    headers: {
+      'Content-Security-Policy': 'frame-ancestors *',
+    },
+  },
+  preview: {
+    headers: {
+      'Content-Security-Policy': 'frame-ancestors *',
+    },
+  },
 }));

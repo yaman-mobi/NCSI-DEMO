@@ -120,7 +120,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setProfileState(null);
     saveAuth(null);
-    localStorage.clear();
+    localStorage.removeItem('accessToken');
   }, []);
 
   const value = {

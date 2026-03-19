@@ -1,0 +1,3 @@
+# Allow embedding in iframes (for report embed)
+/*
+  Content-Security-Policy: frame-ancestors *

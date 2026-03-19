@@ -1,20 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FaFacebookF,
   FaYoutube,
   FaInstagram,
   FaGlobe,
   FaUser,
-  FaSignOutAlt,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { FaArrowRightToBracket } from 'react-icons/fa6';
-import { Dropdown } from 'react-bootstrap';
-
 export default function UpperBar() {
+  const navigate = useNavigate();
   const { user, profile, signOut, isAuthenticated } = useAuth();
   const displayName = user?.fullName || user?.email?.split('@')[0] || 'User';
 
@@ -67,25 +65,18 @@ export default function UpperBar() {
           </button>
 
           {isAuthenticated ? (
-            <span className="hidden text-sm text-black/90 sm:block">
-              <Dropdown>
-                <Dropdown.Toggle
-                  variant="link"
-                  className="text-decoration-none text-[#243A5E] fw-medium"
-                >
-                  {displayName}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={handleLogout}>
-                    <div className="flex items-center">
-                      <FaSignOutAlt className="me-2" />
-                      <span>Logout</span>
-                    </div>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </span>
+            <>
+              <span className="hidden text-sm text-black/90 sm:block">
+                Hi, <span className="font-medium">{displayName}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded border border-black/30 bg-black/10 px-3 py-1.5 text-sm font-medium text-black hover:bg-black/20"
+              >
+                Logout
+              </button>
+            </>
           ) : (
             <>
               <Link
