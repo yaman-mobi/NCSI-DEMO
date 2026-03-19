@@ -126,7 +126,7 @@ export default function TopBar() {
               (path !== '/' && location.pathname.startsWith(path));
             return (
               <NavLink
-                key={path}
+                key={label}
                 to={path}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded transition-colors whitespace-nowrap f-16 ${
                   active
