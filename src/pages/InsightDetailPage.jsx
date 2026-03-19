@@ -1,6 +1,7 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import { getTrendingInsightById } from '../data/trendingInsights';
+import { SOURCE_LABELS } from '../data/profileDataPerPersona';
 
 export default function InsightDetailPage() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function InsightDetailPage() {
     );
   }
 
-  const { title, category, tag, age, region, image, aiSummary, relatedDatasets = [] } = insight;
+  const { title, category, tag, age, region, image, aiSummary, whatThisIsAbout, aiPerspective, relatedDatasets = [], sourceLinks = [] } = insight;
 
   return (
     <main id="main-content" className="bg-portal-bg-section/40" role="main">
@@ -83,34 +84,24 @@ export default function InsightDetailPage() {
             <article className="rounded-2xl border border-portal-border bg-white p-6 shadow-sm">
               <h2 className="font-display text-lg font-bold text-portal-navy">What this insight is about</h2>
               <p className="mt-2 text-sm text-portal-gray">
-                This page simulates how the NCSI Smart Portal could combine narrative context, charts, and AI-generated
-                summaries around a live event or topic. In a full implementation, this section would be populated from
-                curated editorial content and live data feeds.
+                {whatThisIsAbout || aiSummary || 'This insight combines narrative context and AI-generated summaries from Oman News Agency, Knoema, IMF, and official data sources.'}
               </p>
-              <p className="mt-3 text-sm text-portal-gray">
-                For demo purposes, treat the paragraphs below as placeholder copy that you can adapt depending on the
-                audience (e.g., an economic analyst, a university student, or a policy maker). The AI summary on the
-                right-hand side can then highlight 2–3 key messages and suggest which datasets to explore next.
-              </p>
-              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-portal-gray">
-                <li>
-                  Call out the high-level narrative: what has changed, why it matters for Oman, and which sectors or
-                  governorates are most affected.
-                </li>
-                <li>
-                  Provide a short data story that points to official indicators (trade, CPI, labour market, environment,
-                  etc.) without overwhelming the user with tables.
-                </li>
-                <li>
-                  Invite the user to dive deeper via datasets, reports, or the AI Assistant rather than keeping this as
-                  a static article.
-                </li>
-              </ul>
-              <p className="mt-4 text-sm text-portal-gray">
-                You can use this page as a talking point in demos: start with the story, then jump into the linked
-                datasets and ask the AI Assistant to build charts, maps, or quick briefings tailored to the current
-                persona.
-              </p>
+              {sourceLinks?.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-portal-gray-muted">Sources:</span>
+                  {sourceLinks.map((url, i) => (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-portal-bg-section px-3 py-1 text-xs font-medium text-portal-blue hover:bg-portal-ai-bg"
+                    >
+                      {SOURCE_LABELS[url] || url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                    </a>
+                  ))}
+                </div>
+              )}
             </article>
 
             <aside className="space-y-4">
@@ -133,10 +124,9 @@ export default function InsightDetailPage() {
                     <p className="text-xs text-portal-gray">Demo-only narrative generated for this topic.</p>
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-portal-navy-dark">{aiSummary}</p>
+                <p className="mt-3 text-sm text-portal-navy-dark">{aiPerspective || aiSummary}</p>
                 <p className="mt-3 text-xs text-portal-gray-muted">
-                  This is mock content designed to showcase how AI could summarise the key story in a few sentences. In
-                  production, it would be grounded on the datasets listed below.
+                  AI perspective from profile data. Grounded on Oman News Agency, Knoema, IMF, and NCSI datasets.
                 </p>
               </div>
 

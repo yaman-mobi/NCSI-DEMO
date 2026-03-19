@@ -2,15 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 
 const STORAGE_KEY = 'ncsi_smart_portal_personas';
 const STATE_KEY = 'ncsi_smart_portal_persona_state'; // currentPersonaId + activeEvent
+/** All 4 personas from PDF "My profile data per persona" */
 const DEFAULT_PERSONAS = [
-  {
-    id: 'economic-analyst',
-    name: 'Economic Analyst',
-    language: 'English',
-    role: 'Economic Analyst',
-    region: 'Muscat',
-    interests: ['International Trade', 'Finance', 'Energy & Oil'],
-  },
   {
     id: 'university-student',
     name: 'University Student',
@@ -19,6 +12,30 @@ const DEFAULT_PERSONAS = [
     region: 'Salalah',
     interests: ['Education', 'Demographics', 'Social Trends'],
   },
+  {
+    id: 'economist',
+    name: 'Economist',
+    language: 'English',
+    role: 'Economist',
+    region: 'Muscat',
+    interests: ['International Trade', 'Finance', 'Energy & Oil'],
+  },
+  {
+    id: 'data-analyst',
+    name: 'Data Analyst',
+    language: 'English',
+    role: 'Data Analyst',
+    region: 'Muscat',
+    interests: ['CPI', 'Labour', 'Tourism', 'Open data'],
+  },
+  {
+    id: 'statistician',
+    name: 'Statistician',
+    language: 'English',
+    role: 'Statistician',
+    region: 'Muscat',
+    interests: ['Population', 'Labour', 'Education', 'CPI'],
+  },
 ];
 
 function loadPersonas() {
@@ -26,7 +43,12 @@ function loadPersonas() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length >= 2) return parsed;
+      if (Array.isArray(parsed) && parsed.length >= 4) {
+        // Migrate old economic-analyst to economist
+        return parsed.map((p) =>
+          p.id === 'economic-analyst' ? { ...DEFAULT_PERSONAS.find((d) => d.id === 'economist'), id: 'economist' } : p
+        );
+      }
     }
   } catch (_) {}
   return DEFAULT_PERSONAS;
@@ -44,10 +66,9 @@ function loadPersonaState() {
       if (parsed && typeof parsed === 'object') {
         const allowedEvents = new Set(['tariff', 'census', 'oil', 'education', 'none']);
         const eventValue = allowedEvents.has(parsed.activeEvent) ? parsed.activeEvent : 'none';
-        return {
-          currentPersonaId: parsed.currentPersonaId ?? null,
-          activeEvent: eventValue,
-        };
+        let personaId = parsed.currentPersonaId ?? null;
+        if (personaId === 'economic-analyst') personaId = 'economist'; // migrate
+        return { currentPersonaId: personaId, activeEvent: eventValue };
       }
     }
   } catch (_) {}

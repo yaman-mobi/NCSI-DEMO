@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { IconLocation, IconPhone, IconFax, IconClock, IconEmail } from './Icons';
+import { EXTERNAL_LINKS } from '../data/profileDataPerPersona';
 
 export default function Footer() {
   return (
@@ -47,7 +48,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Quick Links */}
+        {/* Quick Links & Data Sources */}
         <div className="flex flex-col gap-4">
           <h4 className="font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark">Quick Links</h4>
           <ul className="flex flex-col gap-1 text-sm text-portal-gray-muted">
@@ -55,6 +56,15 @@ export default function Footer() {
             <li><Link to="/help" className="hover:text-portal-navy">Glossary</Link></li>
             <li><Link to="/help" className="hover:text-portal-navy">Feedback / Report an Issue</Link></li>
             <li><Link to="/datasets" className="hover:text-portal-navy">Datasets</Link></li>
+          </ul>
+          <h4 className="font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark mt-2">Data Sources</h4>
+          <ul className="flex flex-col gap-1 text-sm text-portal-gray-muted">
+            <li><a href={EXTERNAL_LINKS.omanNews} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">Oman News Agency</a></li>
+            <li><a href={EXTERNAL_LINKS.dataGovOm} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">data.gov.om</a></li>
+            <li><a href={EXTERNAL_LINKS.ncsiGovOm} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">NCSI</a></li>
+            <li><a href={EXTERNAL_LINKS.imfOman} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">IMF – Oman</a></li>
+            <li><a href={EXTERNAL_LINKS.timesOfOmanDigitalEconomy} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">Times of Oman</a></li>
+            <li><a href={EXTERNAL_LINKS.mtcitAiProgramme} target="_blank" rel="noopener noreferrer" className="hover:text-portal-navy">MTCIT – AI programme</a></li>
           </ul>
         </div>
 

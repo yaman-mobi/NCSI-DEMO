@@ -73,10 +73,10 @@ function getFeaturedForPersona(persona) {
   const role = persona?.role || '';
   const interests = persona?.interests || [];
 
-  if (role === 'Economic Analyst') {
+  if (role === 'Economic Analyst' || role === 'Economist') {
     return {
       title: 'Featured signals for analysts',
-      subtitle: 'Quick entry points into trade, BoP, and growth data.',
+      subtitle: 'Quick entry points into trade, BoP, and growth data. From PDF profile.',
       items: [
         {
           label: 'Trade & balance of payments',
@@ -103,26 +103,38 @@ function getFeaturedForPersona(persona) {
   if (role === 'University Student') {
     return {
       title: 'Featured for students',
-      subtitle: 'Datasets that work well for projects and assignments.',
+      subtitle: 'Datasets that work well for projects and assignments. From PDF profile data.',
       items: [
-        {
-          label: 'Census 2020 summary',
-          to: '/datasets?highlight=census',
-          desc: 'Population, age groups, and regions.',
-          tag: 'Census',
-        },
-        {
-          label: 'Education statistics',
-          to: '/datasets?category=Education',
-          desc: 'Enrolment by level and governorate.',
-          tag: 'Education',
-        },
-        {
-          label: 'Demographics & social trends',
-          to: '/datasets?category=Demographics',
-          desc: 'Households, youth, and population structure.',
-          tag: 'Demographics',
-        },
+        { label: 'Higher Education Enrollment Trends', to: '/datasets?category=Education', desc: 'Understand popular majors and competition levels.', tag: 'Education' },
+        { label: 'Census 2020 summary', to: '/datasets?highlight=census', desc: 'Population, age groups, and regions.', tag: 'Census' },
+        { label: 'Graduate Employment Outcomes', to: '/datasets?category=Labor%20Market', desc: 'See which degrees lead to jobs.', tag: 'Labour' },
+        { label: 'Tourism Sector Activity', to: '/datasets?category=Economy', desc: 'Explore growing career sectors.', tag: 'Tourism' },
+      ],
+    };
+  }
+
+  if (role === 'Data Analyst') {
+    return {
+      title: 'Featured for data analysts',
+      subtitle: 'CPI, labour segmentation, tourism KPIs. Build dashboards and pipelines.',
+      items: [
+        { label: 'Consumer Price Index (Detailed)', to: '/datasets?category=Economy', desc: 'Build inflation dashboards.', tag: 'CPI' },
+        { label: 'Labour Market Segmentation', to: '/datasets?category=Labor%20Market', desc: 'Deep slicing by age, gender, education.', tag: 'Labour' },
+        { label: 'Tourism KPIs', to: '/datasets?category=Economy', desc: 'Track performance metrics.', tag: 'Tourism' },
+        { label: 'Population by Governorate', to: '/datasets?category=Demographics', desc: 'Geo-based dashboards.', tag: 'Population' },
+      ],
+    };
+  }
+
+  if (role === 'Statistician') {
+    return {
+      title: 'Featured for statisticians',
+      subtitle: 'Population, CPI basket, labour force. Cross-domain analysis.',
+      items: [
+        { label: 'Population Demographics', to: '/datasets?category=Demographics', desc: 'Base for all statistical analysis.', tag: 'Population' },
+        { label: 'Labour Force Survey', to: '/datasets?category=Labor%20Market', desc: 'Official employment statistics.', tag: 'Labour' },
+        { label: 'CPI Basket Structure', to: '/datasets?category=Economy', desc: 'Understand inflation methodology.', tag: 'CPI' },
+        { label: 'National Accounts', to: '/datasets?category=Economy', desc: 'Macroeconomic framework.', tag: 'GDP' },
       ],
     };
   }

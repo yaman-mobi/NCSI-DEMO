@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
 
-const ROLES = ['Economic Analyst', 'University Student', 'Data Scientist', 'Policy Researcher', 'Business Executive', 'Journalist', 'Government Official'];
+const ROLES = ['University Student', 'Economist', 'Data Analyst', 'Statistician', 'Economic Analyst', 'Data Scientist', 'Policy Researcher', 'Business Executive', 'Journalist', 'Government Official'];
 const REGIONS = ['Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur', 'Ibri', 'Other'];
 const INTERESTS = ['International Trade', 'Social Trends', 'Energy & Oil', 'Tourism', 'Education', 'Technology', 'Finance', 'Healthcare', 'Demographics', 'Infrastructure'];
 

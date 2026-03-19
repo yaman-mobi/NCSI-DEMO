@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MOCK_DATASETS, CATEGORIES } from '../data/omanMockData';
+import { usePersona } from '../context/PersonaContext';
+import { profileToPersona } from '../lib/personaUtils';
+import { MOCK_DATASETS, CATEGORIES, FOR_YOU_ID_TO_MOCK_ID } from '../data/omanMockData';
+import { getForYouDatasetsForPersona } from '../data/profileDataPerPersona';
 import { DATASET_PREVIEW_DATA } from '../data/datasetPreviewData';
 import RecommendedForYou from '../components/RecommendedForYou';
 import InsightCards from '../components/InsightCards';
@@ -37,6 +40,9 @@ export default function DatasetsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { profile, isAuthenticated } = useAuth();
+  const { currentPersona } = usePersona();
+  const effectivePersona = isAuthenticated && profile ? profileToPersona(profile) : currentPersona;
+  const forYouDatasets = effectivePersona ? getForYouDatasetsForPersona(effectivePersona.role) : [];
   const highlight = searchParams.get('highlight');
   const categoryParam = searchParams.get('category');
   const indicatorSubmitted = location.state?.indicatorSubmitted;
@@ -139,6 +145,33 @@ export default function DatasetsPage() {
           <div className="mt-6 rounded-xl border border-portal-ai-bg bg-portal-ai-bg/50 p-4">
             <p className="font-display font-bold text-[#161616]">Personalized for you</p>
             <p className="text-sm text-portal-gray">Datasets are ordered by relevance to your interests: {userInterests.slice(0, 4).join(', ')}{userInterests.length > 4 ? '…' : ''}</p>
+          </div>
+        )}
+
+        {forYouDatasets.length > 0 && (
+          <div className="mt-6">
+            <h2 className="font-display text-[20px] font-bold tracking-[-0.5px] text-[#161616]">
+              For you as {effectivePersona?.name || effectivePersona?.role || 'your role'}
+            </h2>
+            <p className="mt-1 text-sm text-portal-gray">Datasets tailored to your persona from the NCSI portal.</p>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {forYouDatasets.map((d) => {
+                const mockId = FOR_YOU_ID_TO_MOCK_ID[d.id];
+                const mock = mockId ? MOCK_DATASETS.find((x) => x.id === mockId) : null;
+                const dataset = mock || { id: d.id, title: d.title, category: (d.tags && d.tags[0]) || 'General', description: d.whyRelevant };
+                return (
+                  <Link
+                    key={d.id}
+                    to={`/datasets?q=${encodeURIComponent(dataset.title)}`}
+                    className="flex flex-col rounded-[10px] border border-portal-border bg-white p-4 transition hover:border-portal-blue/50 hover:shadow-sm"
+                  >
+                    <span className="rounded bg-portal-card-teal px-2 py-0.5 text-xs font-medium text-[#085d3a] w-fit">{dataset.category}</span>
+                    <h3 className="mt-2 font-display text-base font-bold text-[#161616]">{dataset.title}</h3>
+                    <p className="mt-1 text-sm text-portal-gray">{d.whyRelevant}</p>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
 

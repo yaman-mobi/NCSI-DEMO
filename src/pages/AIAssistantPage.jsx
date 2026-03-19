@@ -142,6 +142,7 @@ function generateMockResponse(query, persona) {
       content: {
         type: 'cards',
         title: 'Oman\'s economy performance and investment landscape',
+        insight: "Oman's economy is showing signs of stable, investor-friendly growth, with moderate GDP expansion (2.5%) supported by a strong rise in foreign investment (+18% YoY). Notably, the non-oil sector is growing faster (4.4%), highlighting successful diversification efforts and reducing reliance on oil.",
         cards,
         summary: 'Based on the latest data from the Oman Data Portal. Growth has continued into 2025. Key indicators suggest a favourable environment for investors.',
       },
@@ -862,10 +863,16 @@ function AnswerContent({ content }) {
   }
 
   if (content.type === 'cards') {
-    const { title, cards, summary } = content;
+    const { title, cards, summary, insight } = content;
     return (
       <div className="space-y-4">
         {title && <p className="font-display text-base font-semibold text-[#161616]">{title}</p>}
+        {insight && (
+          <div className="rounded-xl border-l-4 border-portal-blue/60 bg-portal-blue/5 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-portal-blue/80">Insight</p>
+            <p className="mt-1 text-sm leading-relaxed text-[#161616]">{insight}</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {cards.map((c, i) => (
             <div

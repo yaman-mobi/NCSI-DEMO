@@ -1,23 +1,28 @@
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
+import { useAuth } from '../context/AuthContext';
+import { profileToPersona } from '../lib/personaUtils';
 import { getSmartRecommendations } from '../lib/recommendations';
 
 /**
  * Smart "Recommended for you" block. Use context to adapt what to show.
+ * When logged in, uses profile (updated by Preferences). Otherwise uses PersonaSwitcher.
  * @param {string} context - 'landing' | 'datasets' | 'reports' | 'ai-assistant' | 'report-builder'
  * @param {{ reportId?: string, maxDatasets?: number, maxReports?: number, compact?: boolean, onQueryClick?: (q: string) => void }} props
  */
 export default function RecommendedForYou({
   context = 'landing',
   reportId,
-  maxDatasets = 4,
+  maxDatasets = 6,
   maxReports = 2,
   compact = false,
   onQueryClick,
 }) {
   const { currentPersona, activeEvent } = usePersona();
-  const persona = currentPersona
-    ? { role: currentPersona.role, region: currentPersona.region, interests: currentPersona.interests || [] }
+  const { profile, isAuthenticated } = useAuth();
+  const effectivePersona = isAuthenticated && profile ? profileToPersona(profile) : currentPersona;
+  const persona = effectivePersona
+    ? { role: effectivePersona.role, region: effectivePersona.region, interests: effectivePersona.interests || [] }
     : null;
   const rec = persona ? getSmartRecommendations(persona, activeEvent || 'none', context, { reportId }) : null;
 

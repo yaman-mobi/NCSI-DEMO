@@ -1,9 +1,11 @@
 /**
  * Smart recommendations engine: persona + event + context + recent activity.
  * Used by RecommendedForYou component across the portal.
+ * "For You" datasets from "My profile data per persona" PDF.
  */
 
-import { MOCK_DATASETS } from '../data/omanMockData';
+import { MOCK_DATASETS, FOR_YOU_ID_TO_MOCK_ID } from '../data/omanMockData';
+import { getForYouDatasetsForPersona } from '../data/profileDataPerPersona';
 import { loadReports } from './reportStorage';
 
 const RECENT_VIEWED_KEY = 'ncsi_smart_portal_recent';
@@ -49,44 +51,66 @@ export function getSmartRecommendations(persona, activeEvent, context, options =
     eventReason: '',
   };
 
-  // Event-based boost (tariff → trade/BoP; census → census/demographics)
-  if (activeEvent === 'tariff' && (role === 'Economic Analyst' || context === 'landing')) {
-    result.eventReason = 'US Tariff change — relevant for trade and balance of payments';
-    const tradeDatasets = MOCK_DATASETS.filter((d) => (d.tags || []).includes('trade'));
-    result.datasets = [...tradeDatasets];
-  } else if (activeEvent === 'census' && (role === 'University Student' || context === 'landing')) {
-    result.eventReason = 'National Census released — relevant for demographics and your region';
-    const censusDatasets = MOCK_DATASETS.filter(
-      (d) => (d.tags || []).includes('census') || (d.title || '').toLowerCase().includes('census') || d.category === 'Demographics'
-    );
-    result.datasets = [...censusDatasets];
+  // Event-based reason (for display)
+  if (activeEvent === 'tariff') result.eventReason = 'US Tariff change — relevant for trade and balance of payments';
+  else if (activeEvent === 'census') result.eventReason = 'National Census released — relevant for demographics and your region';
+
+  // Role + "For You" datasets from PDF – PRIMARY source; datasets must change per persona
+  const forYouDatasets = getForYouDatasetsForPersona(role);
+  if (forYouDatasets.length > 0) {
+    // Map PDF datasets to display format; prefer MOCK_DATASETS when we have a match for full metadata
+    result.datasets = forYouDatasets.map((d) => {
+      const mockId = FOR_YOU_ID_TO_MOCK_ID[d.id];
+      const mock = mockId ? MOCK_DATASETS.find((x) => x.id === mockId) : null;
+      return mock
+        ? { ...mock, whyRelevant: d.whyRelevant }
+        : { id: d.id, title: d.title, category: (d.tags && d.tags[0]) ? d.tags[0] : 'General', description: d.whyRelevant, whyRelevant: d.whyRelevant, tags: d.tags || [] };
+    });
   }
 
-  // Role + interests based
-  if (role === 'Economic Analyst') {
+  // Role-specific labels and queries
+  if (role === 'Economic Analyst' || role === 'Economist') {
     result.reason = 'Recommended for Economic Analysts';
-    const economy = MOCK_DATASETS.filter((d) => d.category === 'Economy' || (d.tags || []).includes('trade'));
-    result.datasets = result.datasets.length ? result.datasets : [...economy];
+    if (result.datasets.length === 0) {
+      result.datasets = MOCK_DATASETS.filter((d) => d.category === 'Economy' || (d.tags || []).includes('trade'));
+    }
     result.queries = ['Show trade and Balance of Payments data for Oman', 'GDP growth trends in Oman 2020–2024', 'Key economic indicators for Oman'];
     result.reports = reports.filter((r) => (r.title || '').toLowerCase().includes('labour') || (r.title || '').toLowerCase().includes('economic')).slice(0, 3);
   } else if (role === 'University Student') {
     result.reason = 'Recommended for Students';
-    const student = MOCK_DATASETS.filter(
-      (d) => d.category === 'Education' || d.category === 'Demographics' || (d.tags || []).includes('census')
-    );
-    result.datasets = result.datasets.length ? result.datasets : [...student];
+    if (result.datasets.length === 0) {
+      result.datasets = MOCK_DATASETS.filter(
+        (d) => d.category === 'Education' || d.category === 'Demographics' || (d.tags || []).includes('census')
+      );
+    }
     result.queries = ['Census 2020 data by governorate and demographics', 'Education statistics by region', 'Population by governorate'];
     result.reports = reports.filter((r) => (r.title || '').toLowerCase().includes('census') || (r.title || '').toLowerCase().includes('population')).slice(0, 3);
+  } else if (role === 'Data Analyst') {
+    result.reason = 'Recommended for Data Analysts';
+    if (result.datasets.length === 0) {
+      result.datasets = MOCK_DATASETS.filter((d) => d.category === 'Economy' || d.category === 'Labor Market' || (d.tags || []).includes('cpi'));
+    }
+    result.queries = ['Build inflation dashboards with CPI data', 'Labour market segmentation by age and gender', 'Tourism KPIs and visitor metrics'];
+    result.reports = reports.slice(0, 3);
+  } else if (role === 'Statistician') {
+    result.reason = 'Recommended for Statisticians';
+    if (result.datasets.length === 0) {
+      result.datasets = MOCK_DATASETS.filter((d) => d.category === 'Demographics' || d.category === 'Labor Market' || d.category === 'Vital Statistics');
+    }
+    result.queries = ['Population demographics by governorate', 'CPI basket structure and methodology', 'Cross-domain statistical integration'];
+    result.reports = reports.slice(0, 3);
   } else {
     result.reason = 'Recommended for you';
-    const byInterest = interests.length
-      ? MOCK_DATASETS.filter((d) => {
-          const cat = (d.category || '').toLowerCase();
-          const title = (d.title || '').toLowerCase();
-          return interests.some((i) => cat.includes(i.toLowerCase()) || title.includes(i.toLowerCase()));
-        })
-      : MOCK_DATASETS.slice(0, 6);
-    result.datasets = result.datasets.length ? result.datasets : byInterest;
+    if (result.datasets.length === 0) {
+      const byInterest = interests.length
+        ? MOCK_DATASETS.filter((d) => {
+            const cat = (d.category || '').toLowerCase();
+            const title = (d.title || '').toLowerCase();
+            return interests.some((i) => cat.includes(i.toLowerCase()) || title.includes(i.toLowerCase()));
+          })
+        : MOCK_DATASETS.slice(0, 6);
+      result.datasets = byInterest;
+    }
     result.queries = ['What is the unemployment rate in Oman for 2024?', 'Show me GDP growth trends', 'Compare population across governorates'];
     result.reports = reports.slice(0, 3);
   }

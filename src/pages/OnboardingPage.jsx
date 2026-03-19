@@ -3,15 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const LANGUAGES = ['English', 'Arabic'];
-const ROLES = [
-  'Economic Analyst',
-  'University Student',
-  'Data Scientist',
-  'Policy Researcher',
-  'Business Executive',
-  'Journalist',
-  'Government Official',
-];
+/** 4 personas from PDF "My profile data per persona" */
+const ROLES = ['University Student', 'Economist', 'Data Analyst', 'Statistician'];
 const REGIONS = ['Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur', 'Ibri', 'Other'];
 const INTERESTS = [
   'International Trade',
@@ -30,12 +23,11 @@ function getTipForRole(role) {
   if (!role) return null;
   const tips = {
     'Economic Analyst': 'We’ll surface trade, BoP, and economic indicators first.',
+    'Economist': "We'll surface trade, BoP, and economic indicators first.",
     'University Student': 'Census, education, and demographics will be prioritized.',
+    'Data Analyst': 'CPI, labour segmentation, tourism KPIs. Build dashboards and pipelines.',
+    'Statistician': 'Population, CPI basket, labour force. Cross-domain analysis.',
     'Data Scientist': 'You’ll see datasets and export options tailored to analysis.',
-    'Policy Researcher': 'Policy-relevant indicators and reports will be highlighted.',
-    'Business Executive': 'Key economic and sector data will appear in your feed.',
-    'Journalist': 'Latest releases and story-ready statistics will be featured.',
-    'Government Official': 'Official statistics and regional data will be prioritized.',
   };
   return tips[role] || 'Your feed will adapt to your selected interests.';
 }

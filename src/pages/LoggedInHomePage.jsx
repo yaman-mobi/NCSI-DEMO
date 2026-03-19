@@ -1,14 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TopBar from '../components/TopBar';
 import Footer from '../components/Footer';
 import AlertsPanel from '../components/AlertsPanel';
 import AIInsightsWidget from '../components/AIInsightsWidget';
 import { useAuth } from '../context/AuthContext';
 import { usePersona } from '../context/PersonaContext';
-import { TRENDING_INSIGHTS } from '../data/trendingInsights';
-import { MOCK_DATASETS } from '../data/omanMockData';
+import { getTrendingInsightsForPersona } from '../data/trendingInsights';
+import { getForYouDatasetsForPersona } from '../data/profileDataPerPersona';
+import { profileToPersona } from '../lib/personaUtils';
+import { MOCK_DATASETS, TRENDING_DATASETS_FOR_ALL } from '../data/omanMockData';
 import UpperBar from '../components/UpperBar';
+import PreferencesDialog from '../components/PreferencesDialog';
 
 function getTimeGreeting() {
   const h = new Date().getHours();
@@ -27,11 +30,11 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-1',
     type: 'dataset',
-    title: 'Oil Export Volumes Q4 2024',
-    subtitle: 'Crude oil and refined petroleum export data by destination',
+    title: 'Oil Prices & Energy Indicators',
+    subtitle: 'Oil production, prices, energy sector. Core driver of Oman economy. Knoema.',
     age: '2d ago',
     location: 'Muscat',
-    tags: ['oil', 'exports'],
+    tags: ['oil', 'energy'],
     badge: 'Dataset',
     tone: 'economy',
     image: 'https://picsum.photos/seed/oil-exports/180/100',
@@ -39,12 +42,12 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-2',
     type: 'news',
-    title: 'Red Sea Shipping Crisis: Oman Ports See Record Traffic as Alternative Route',
+    title: 'Oman AI foundations: Strong national push – Oman News Agency',
     subtitle:
-      'Houthi attacks on commercial shipping in the Red Sea redirect global trade flows. Duqm and Salalah ports report a 28% increase in vessel calls.',
-    age: '2d ago',
+      'Oman News Agency reported strong national foundations for AI. Digital economy at OMR 800M with growing AI investment.',
+    age: '16d ago',
     location: 'Muscat',
-    tags: ['shipping', 'red-sea'],
+    tags: ['AI', 'digital-economy'],
     badge: 'News',
     tone: 'trade',
     image: 'https://picsum.photos/seed/oman-port/180/100',
@@ -52,11 +55,11 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-3',
     type: 'dataset',
-    title: 'Oman GDP Growth 2024 (Flash Estimate)',
-    subtitle: 'Real GDP growth and non-oil sector contribution for 2020–2024',
-    age: '3d ago',
+    title: 'IMF Oman 2026: GDP 4.0%, CPI 1.5% – Non-oil growth',
+    subtitle: 'IMF projects real GDP growth at 4.0%, consumer-price growth at 1.5%. Fiscal adjustment. IMF eLibrary.',
+    age: '2mo ago',
     location: 'Muscat',
-    tags: ['gdp', 'economy'],
+    tags: ['IMF', 'gdp', 'fiscal'],
     badge: 'Dataset',
     tone: 'economy',
     image: 'https://picsum.photos/seed/gdp-growth/180/100',
@@ -64,49 +67,49 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-4',
     type: 'news',
-    title: 'Oman Mediates Between Iran and Western Powers Amid Regional Escalation',
+    title: 'Oman tax revenues exceed RO 1.3 billion – Oman News Agency',
     subtitle:
-      'Oman leverages its neutral diplomatic stance to facilitate backchannel negotiations as tensions rise between Iran and the US-led coalition.',
-    age: '3d ago',
+      'Tax revenues underscore growing role of non-oil revenue streams in public finance. Fiscal resilience.',
+    age: '41d ago',
     location: 'Muscat',
-    tags: ['diplomacy', 'iran'],
+    tags: ['tax', 'fiscal'],
     badge: 'News',
-    tone: 'diplomacy',
+    tone: 'economy',
     image: 'https://picsum.photos/seed/diplomacy/180/100',
   },
   {
     id: 'feed-5',
     type: 'dataset',
-    title: 'Foreign Direct Investment Flows',
-    subtitle: 'FDI inflows and outflows by sector and origin country, in OMR million.',
-    age: '4d ago',
+    title: 'Higher Education Enrollment – 141,277 in 2023, +12.1% YoY',
+    subtitle: 'Female enrollment 80,764. Knoema. Student demand for AI, data, digital courses.',
+    age: '7d ago',
     location: 'Muscat',
-    tags: ['fdi', 'investment'],
+    tags: ['education', 'Knoema'],
     badge: 'Dataset',
-    tone: 'economy',
+    tone: 'education',
     image: 'https://picsum.photos/seed/fdi-investment/180/100',
   },
   {
     id: 'feed-6',
-    type: 'dataset',
-    title: 'Tourism Revenue Dashboard',
-    subtitle: 'Monthly tourism revenue and visitor statistics by governorate.',
-    age: '5d ago',
+    type: 'news',
+    title: 'Sumharam & Jabal Shams tourism projects – Oman News',
+    subtitle: 'Tourism development and operating agreements. Heritage, hospitality, destination services.',
+    age: '6–8d ago',
     location: 'Salalah',
-    tags: ['tourism', 'revenue'],
-    badge: 'Dataset',
+    tags: ['tourism', 'heritage'],
+    badge: 'News',
     tone: 'tourism',
     image: 'https://picsum.photos/seed/oman-tourism/180/100',
   },
   {
     id: 'feed-7',
     type: 'news',
-    title: 'Duqm SEZ Attracts $3.2B in New Investment as Companies Diversify from Conflict Zones',
+    title: 'SQU Career Fair & Ministry of Labour – 325 vacancies',
     subtitle:
-      'Special Economic Zone at Duqm sees a surge in foreign investment commitments as multinational companies seek stable alternatives to conflict-affected hubs.',
-    age: '6d ago',
-    location: 'Duqm',
-    tags: ['investment', 'duqm'],
+      '136 for bachelor’s holders. Career development, training. Education-to-work link. Oman News.',
+    age: '7d ago',
+    location: 'Muscat',
+    tags: ['career', 'labour', 'graduates'],
     badge: 'News',
     tone: 'economy',
     image: 'https://picsum.photos/seed/duqm-port/180/100',
@@ -114,11 +117,11 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-8',
     type: 'dataset',
-    title: 'Consumer Price Index – Salalah',
-    subtitle: 'Monthly CPI data tracking inflation across consumer categories in Salalah.',
+    title: 'Consumer Price Index – Oman (all-items 111.10, food 114.50 Dec 2023)',
+    subtitle: 'CPI by basket. IMF projects 1.5% in 2026. Category-level movement matters. Knoema.',
     age: '6d ago',
-    location: 'Salalah',
-    tags: ['inflation', 'consumer'],
+    location: 'Muscat',
+    tags: ['CPI', 'inflation'],
     badge: 'Dataset',
     tone: 'prices',
     image: 'https://picsum.photos/seed/cpi-salalah/180/100',
@@ -126,36 +129,39 @@ const MOCK_FEED_ITEMS = [
   {
     id: 'feed-9',
     type: 'news',
-    title: 'Oil Prices Surge Past $85 as Gulf Tensions Threaten Strait of Hormuz',
+    title: 'Oman digital economy at OMR 800M – Times of Oman',
     subtitle:
-      'Brent crude spikes and fears of disruption to the Strait of Hormuz, through which 21% of global oil passes, push energy markets higher.',
+      'National AI initiatives. Digital activity scaling for structural transformation. MTCIT.',
     age: '6d ago',
     location: 'Muscat',
-    tags: ['oil', 'energy'],
+    tags: ['digital-economy', 'AI'],
     badge: 'News',
     tone: 'energy',
     image: 'https://picsum.photos/seed/oil-prices/180/100',
   },
   {
     id: 'feed-10',
-    type: 'news',
-    title: 'Oman Strengthens Food Security Strategy Amid Regional Supply Chain Disruptions',
+    type: 'dataset',
+    title: 'Labour market: Unemployment 5.88% (25–29), 17% females with university',
     subtitle:
-      'Government accelerates food security initiatives as regional conflicts disrupt traditional supply routes. New agreements with India and East Africa diversify imports.',
+      'Segmented data. Age, gender, qualification. Knoema. Graduate employment analysis.',
     age: '6d ago',
     location: 'Muscat',
-    tags: ['food-security', 'supply-chain'],
-    badge: 'News',
-    tone: 'food',
+    tags: ['labour', 'unemployment'],
+    badge: 'Dataset',
+    tone: 'labour',
     image: 'https://picsum.photos/seed/food-security/180/100',
   },
 ];
 
 export default function LoggedInHomePage() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const { currentPersona } = usePersona();
   const greeting = getTimeGreeting();
+
+  const effectivePersona = isAuthenticated && profile ? profileToPersona(profile) : currentPersona;
+  const forYouDatasets = effectivePersona ? getForYouDatasetsForPersona(effectivePersona.role) : [];
 
   const firstName = user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
   const role = profile?.role_occupation || currentPersona?.role || 'NCSI Smart Portal user';
@@ -164,10 +170,17 @@ export default function LoggedInHomePage() {
 
   const primaryInterest = interests[0] || 'International Trade';
 
-  const [page, setPage] = useState(1);
-  const pageSize = 5;
-  const totalPages = Math.max(1, Math.ceil(MOCK_FEED_ITEMS.length / pageSize));
-  const pagedItems = MOCK_FEED_ITEMS.slice((page - 1) * pageSize, page * pageSize);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [activeFeedTab, setActiveFeedTab] = useState('forYou'); // 'forYou' | 'trending'
+  const [forYouPage, setForYouPage] = useState(1);
+
+  const forYouPageSize = 5;
+  const forYouTotalPages = Math.max(1, Math.ceil(forYouDatasets.length / forYouPageSize));
+  const pagedForYouDatasets = forYouDatasets.slice((forYouPage - 1) * forYouPageSize, forYouPage * forYouPageSize);
+
+  useEffect(() => {
+    setForYouPage(1);
+  }, [effectivePersona?.role]);
 
   const getRelatedDatasetsForInsight = (insight) => {
     if (!insight.relatedDatasetIds) return [];
@@ -196,12 +209,16 @@ export default function LoggedInHomePage() {
                 Your AI feed is tailored to your role, region, and interests.
               </p>
             </div>
-            <button
-              type="button"
-              className="hidden rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20 md:inline-flex"
-            >
-              Preferences
-            </button>
+            <div className="relative hidden md:block">
+              <button
+                type="button"
+                onClick={() => setPreferencesOpen(true)}
+                className="rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
+              >
+                Preferences
+              </button>
+              <PreferencesDialog open={preferencesOpen} onClose={() => setPreferencesOpen(false)} />
+            </div>
           </section>
 
           {/* Trending AI insights */}
@@ -236,7 +253,7 @@ export default function LoggedInHomePage() {
                 </div>
               </div>
               <div className="mt-3 flex gap-4 overflow-x-auto pb-2">
-                {TRENDING_INSIGHTS.map((item) => {
+                {getTrendingInsightsForPersona(currentPersona || (profile ? { role: profile.role_occupation } : null)).map((item) => {
                   const related = getRelatedDatasetsForInsight(item);
                   return (
                     <Link
@@ -290,13 +307,15 @@ export default function LoggedInHomePage() {
               <div className="flex items-center gap-4 border-b border-portal-border-light px-1 pb-2 text-sm">
                 <button
                   type="button"
-                  className="relative pb-1 font-medium text-portal-navy after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:rounded-full after:bg-portal-blue"
+                  onClick={() => setActiveFeedTab('forYou')}
+                  className={`relative pb-1 ${activeFeedTab === 'forYou' ? 'font-medium text-portal-navy after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:rounded-full after:bg-portal-blue' : 'text-portal-gray hover:text-portal-navy'}`}
                 >
                   For You
                 </button>
                 <button
                   type="button"
-                  className="pb-1 text-portal-gray hover:text-portal-navy"
+                  onClick={() => setActiveFeedTab('trending')}
+                  className={`relative pb-1 ${activeFeedTab === 'trending' ? 'font-medium text-portal-navy after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:rounded-full after:bg-portal-blue' : 'text-portal-gray hover:text-portal-navy'}`}
                 >
                   Trending
                 </button>
@@ -328,112 +347,127 @@ export default function LoggedInHomePage() {
                 </a>
               </div>
 
-              {/* Feed cards */}
+              {/* Feed cards – For You (persona-specific) or Trending (PDF TRENDING DATASETS FOR ALL) */}
               <div className="space-y-3">
-                {pagedItems.map((item) => {
-                  const isNews = item.type === 'news';
-                  return (
-                    <article
-                      key={item.id}
-                      className="flex rounded-2xl border border-portal-border bg-white shadow-sm hover:border-portal-blue/50"
-                    >
-                      {/* Left strip */}
-                      <div
-                        className={`flex w-32 shrink-0 flex-col justify-center rounded-l-2xl p-3 ${
-                          isNews
-                            ? 'bg-gradient-to-b from-portal-ai-bg via-portal-ai-bg to-portal-ai-bg'
-                            : 'bg-gradient-to-b from-portal-bg-section via-portal-bg-section to-portal-bg-section'
-                        }`}
+                {activeFeedTab === 'forYou' ? (
+                  forYouDatasets.length > 0 ? (
+                    pagedForYouDatasets.map((d) => (
+                      <Link
+                        key={d.id}
+                        to={`/datasets?q=${encodeURIComponent(d.title)}`}
+                        className="flex rounded-2xl border border-portal-border bg-white shadow-sm transition-all hover:border-portal-blue/50 hover:shadow-md"
                       >
-                        <div className="flex flex-col gap-2">
+                        <div className="flex w-32 shrink-0 flex-col justify-center rounded-l-2xl bg-gradient-to-b from-portal-bg-section via-portal-bg-section to-portal-bg-section p-3">
                           <span className="inline-flex items-center rounded-full bg-portal-navy px-2 py-0.5 text-[10px] font-semibold text-white">
-                            {item.badge}
+                            For you
                           </span>
-                          <div className="mt-2 overflow-hidden rounded-lg border border-white/40">
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="h-[64px] w-full object-cover"
-                            />
+                          <div className="mt-2 flex h-[64px] items-center justify-center overflow-hidden rounded-lg border border-portal-border-light bg-white">
+                            {d.image ? (
+                              <img src={d.image} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <svg className="h-8 w-8 text-portal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                            )}
                           </div>
+                        </div>
+                        <div className="flex flex-1 flex-col justify-between p-3">
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-portal-gray-muted">
+                            <span>Curated for {effectivePersona?.name || effectivePersona?.role || 'your role'}</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-portal-blue">
+                              Explore <span aria-hidden>↗</span>
+                            </span>
+                          </div>
+                          <div className="mt-1">
+                            <h3 className="font-display text-sm font-semibold leading-snug text-portal-navy">{d.title}</h3>
+                            <p className="mt-1 text-xs text-portal-gray line-clamp-2">{d.whyRelevant}</p>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {(d.tags || []).map((tag) => (
+                              <span key={tag} className="rounded-full bg-portal-bg-section px-2 py-0.5 text-[10px] font-medium text-portal-gray">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-portal-border bg-white p-8 text-center">
+                      <p className="text-portal-gray">Select a role in Preferences to see your personalized datasets.</p>
+                      <button
+                        type="button"
+                        onClick={() => setPreferencesOpen(true)}
+                        className="mt-3 rounded-full bg-portal-blue px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark"
+                      >
+                        Open Preferences
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  TRENDING_DATASETS_FOR_ALL.map((d) => (
+                    <Link
+                      key={d.id}
+                      to="/datasets"
+                      className="flex rounded-2xl border border-portal-border bg-white shadow-sm transition-all hover:border-portal-blue/50 hover:shadow-md"
+                    >
+                      <div className="flex w-32 shrink-0 flex-col justify-center rounded-l-2xl bg-gradient-to-b from-portal-bg-section via-portal-bg-section to-portal-bg-section p-3">
+                        <span className="inline-flex items-center rounded-full bg-portal-navy px-2 py-0.5 text-[10px] font-semibold text-white">
+                          Dataset
+                        </span>
+                        <div className="mt-2 flex h-[64px] items-center justify-center rounded-lg border border-portal-border-light bg-white">
+                          <svg className="h-8 w-8 text-portal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
                         </div>
                       </div>
-
-                      {/* Main content */}
                       <div className="flex flex-1 flex-col justify-between p-3">
                         <div className="flex items-center justify-between gap-2 text-[11px] text-portal-gray-muted">
-                          <div className="flex items-center gap-2">
-                            <span>{item.age}</span>
-                            <span>•</span>
-                            <span>{item.location}</span>
-                          </div>
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 text-[11px] font-medium text-portal-gray hover:text-portal-blue"
-                          >
-                            {isNews ? 'Read' : 'Explore'}
-                            <span aria-hidden>↗</span>
-                          </button>
+                          <span>Trending across all users</span>
+                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            {d.clickTrend}
+                          </span>
                         </div>
                         <div className="mt-1">
-                          <h3 className="font-display text-sm font-semibold leading-snug text-portal-navy">
-                            {item.title}
-                          </h3>
+                          <h3 className="font-display text-sm font-semibold leading-snug text-portal-navy">{d.title}</h3>
                           <p className="mt-1 text-xs text-portal-gray line-clamp-2">
-                            {item.subtitle}
+                            Most popular datasets by click volume. From PDF profile data.
                           </p>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {item.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-portal-bg-section px-2 py-0.5 text-[10px] font-medium text-portal-gray"
-                            >
+                          {d.tags.map((tag) => (
+                            <span key={tag} className="rounded-full bg-portal-bg-section px-2 py-0.5 text-[10px] font-medium text-portal-gray">
                               {tag}
                             </span>
                           ))}
-                          <span className="inline-flex items-center rounded-full bg-[#6d42ff] px-2 py-0.5 text-[10px] font-semibold text-white">
-                            Match
-                          </span>
                         </div>
                       </div>
-                    </article>
-                  );
-                })}
-                {/* Pagination */}
-                {totalPages > 1 && (
+                    </Link>
+                  ))
+                )}
+                {activeFeedTab === 'forYou' && forYouDatasets.length > 0 && forYouTotalPages > 1 && (
                   <div className="mt-3 flex items-center justify-between px-1 text-xs text-portal-gray">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page === 1}
+                        onClick={() => setForYouPage((p) => Math.max(1, p - 1))}
+                        disabled={forYouPage === 1}
                         className="rounded-full border border-portal-border bg-white px-3 py-1 font-medium hover:bg-portal-bg-section disabled:opacity-40"
                       >
                         Previous
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page === totalPages}
+                        onClick={() => setForYouPage((p) => Math.min(forYouTotalPages, p + 1))}
+                        disabled={forYouPage === forYouTotalPages}
                         className="rounded-full border border-portal-border bg-white px-3 py-1 font-medium hover:bg-portal-bg-section disabled:opacity-40"
                       >
                         Next
                       </button>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => setPage(n)}
-                          className={`h-2.5 w-2.5 rounded-full ${
-                            n === page ? 'bg-portal-blue' : 'bg-portal-bg-section hover:bg-portal-border'
-                          }`}
-                          aria-label={`Go to page ${n}`}
-                        />
-                      ))}
-                    </div>
+                    <span>
+                      Page {forYouPage} of {forYouTotalPages}
+                    </span>
                   </div>
                 )}
               </div>
@@ -528,15 +562,18 @@ export default function LoggedInHomePage() {
               {/* AI Insights widget */}
               <AIInsightsWidget />
 
-              {/* Trending topics list */}
+              {/* Trending datasets – from PDF */}
               <section className="rounded-2xl border border-portal-border bg-white p-4 text-xs shadow-sm">
-                <p className="font-display text-sm font-bold tracking-[-0.2px] text-portal-navy">Trending</p>
+                <p className="font-display text-sm font-bold tracking-[-0.2px] text-portal-navy">Trending datasets</p>
                 <ol className="mt-3 space-y-1.5 text-xs">
-                  {['oil', 'exports', 'energy', 'shipping', 'red-sea'].map((topic, idx) => (
-                    <li key={topic} className="flex items-center justify-between gap-2">
+                  {TRENDING_DATASETS_FOR_ALL.map((d, idx) => (
+                    <li key={d.id} className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-2">
                         <span className="text-portal-gray-muted">#{idx + 1}</span>
-                        <span className="font-medium text-portal-navy">{topic}</span>
+                        <span className="font-medium text-portal-navy">{d.title}</span>
+                      </span>
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        {d.clickTrend}
                       </span>
                     </li>
                   ))}

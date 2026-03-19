@@ -39,29 +39,18 @@ const CHART_UPDATE_STEPS = [
   'Updating visualization',
 ];
 
-/** Detect if prompt is asking to change a chart; return { sectionIndex, newContent } or null */
+/** Detect if prompt is asking to change a chart; return { sectionId, newContent } or null */
 function parseChartChangePrompt(prompt, sections) {
   const p = (prompt || '').toLowerCase().trim();
   if (!p || !sections?.length) return null;
   const chartSections = sections
-    .map((s, i) => ({ section: s, index: i }))
+    .map((s) => ({ section: s }))
     .filter(({ section }) => section.type === 'chart' || (typeof section.content === 'string' && section.content.startsWith('__CHART__')));
   if (chartSections.length === 0) return null;
+  const isChartRelated = /\b(change|switch|convert|make|show)\b.*\b(chart|graph)\b/.test(p) || /\b(bar|line|pie|area|scatter|funnel)\s*(chart)?\b/.test(p);
+  if (!isChartRelated) return null;
   const firstChart = chartSections[0];
-  let newContent = null;
-  if (/\b(change|switch|convert|make|show)\b.*\b(chart|graph)\b/.test(p) || /\b(bar|line|pie)\s*(chart)?\b/.test(p)) {
-    const wantLine = /\bline\b/.test(p) || /\btrend\b/.test(p) || /\bover time\b/.test(p);
-    const wantBar = /\bbar\b/.test(p) || /\bby governorate\b/.test(p) || /\bpopulation\b/.test(p);
-    const wantUnemployment = /\bunemployment\b/.test(p);
-    const wantGdp = /\bgdp\b/.test(p) || /\bgrowth\b/.test(p);
-    if (wantLine && wantUnemployment) newContent = '__CHART__|line|unemployment';
-    else if (wantLine && wantGdp) newContent = '__CHART__|line|gdpGrowth';
-    else if (wantLine) newContent = '__CHART__|line|governorates';
-    else if (wantBar) newContent = '__CHART__|bar|governorates';
-    else if (wantUnemployment) newContent = '__CHART__|line|unemployment';
-    else if (wantGdp) newContent = '__CHART__|line|gdpGrowth';
-    else newContent = '__CHART__|bar|governorates';
-  }
+  const newContent = parseChartPromptForSection(prompt);
   if (newContent) return { sectionId: firstChart.section.id, newContent };
   return null;
 }
@@ -354,6 +343,70 @@ export default function ReportBuilderPage() {
     if (!report) return Promise.resolve();
     const section = report.sections?.find((s) => s.id === sectionId);
     if (!section) return Promise.resolve();
+    const isChart = section.type === 'chart' || (typeof section.content === 'string' && section.content.startsWith('__CHART__'));
+    const isTable = section.type === 'table' || (typeof section.content === 'string' && section.content.startsWith('__TABLE__'));
+    const conversion = customPrompt?.trim() ? parseConversionPrompt(customPrompt) : null;
+
+    // Table → Chart: "convert to chart", "make it a chart"
+    if (isTable && conversion?.toChart) {
+      const chartContent = parseChartPromptForSection(customPrompt) || '__CHART__|bar|governorates';
+      const spec = parseChartContent(chartContent);
+      const titleByDataset = {
+        governorates: 'Population by governorate (million) – Sultanate of Oman',
+        employment: 'Employment by governorate (thousands) – Sultanate of Oman',
+        unemployment: 'Unemployment rate (%) – Oman',
+        gdpGrowth: 'GDP growth (%) – Oman',
+      };
+      const newTitle = titleByDataset[spec?.datasetKey] ?? 'Chart – Sultanate of Oman';
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          updateSection(report.id, sectionId, { content: chartContent, type: 'chart', title: newTitle });
+          setReport(getReport(report.id));
+          showToast('Table converted to chart.');
+          resolve();
+        }, 800);
+      });
+    }
+
+    // Chart → Table: "convert to table", "make it a table"
+    if (isChart && conversion?.toTable) {
+      const spec = parseChartContent(section.content) || { type: 'bar', datasetKey: 'governorates' };
+      const rows = chartDataToTableRows(spec.datasetKey);
+      const tableContent = `__TABLE__|${JSON.stringify(rows)}`;
+      const newTitle = (section.title || 'Chart').replace(/\s*[–-]\s*Sultanate of Oman\s*$/i, '') + ' – Table';
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          updateSection(report.id, sectionId, { content: tableContent, type: 'table', title: newTitle });
+          setReport(getReport(report.id));
+          showToast('Chart converted to table.');
+          resolve();
+        }, 800);
+      });
+    }
+
+    // Chart type/dataset change (existing)
+    if (isChart && customPrompt?.trim()) {
+      const newContent = parseChartPromptForSection(customPrompt);
+      if (newContent) {
+        const spec = parseChartContent(newContent);
+        const titleByDataset = {
+          governorates: 'Population by governorate (million) – Sultanate of Oman',
+          employment: 'Employment by governorate (thousands) – Sultanate of Oman',
+          unemployment: 'Unemployment rate (%) – Oman',
+          gdpGrowth: 'GDP growth (%) – Oman',
+        };
+        const newTitle = titleByDataset[spec?.datasetKey] ?? section.title;
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            updateSection(report.id, sectionId, { content: newContent, title: newTitle });
+            setReport(getReport(report.id));
+            showToast('Chart updated to match your request.');
+            resolve();
+          }, 800);
+        });
+      }
+    }
+
     return new Promise((resolve) => {
       setTimeout(() => {
         const newContent = mockRegenerateSection(section.title, customPrompt);
@@ -362,7 +415,7 @@ export default function ReportBuilderPage() {
         resolve();
       }, 1200);
     });
-  }, [report]);
+  }, [report, showToast]);
 
   /** Mock paraphrase: rephrase text for demo (rich content editor feature). */
   const handleParaphrase = useCallback((sectionId) => {
@@ -1106,7 +1159,7 @@ export default function ReportBuilderPage() {
   );
 }
 
-function OmanBarChart({ data }) {
+function OmanBarChart({ data, unit = 'million' }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
@@ -1161,7 +1214,7 @@ function OmanBarChart({ data }) {
           style={{ left: tooltipPos.x + 12, top: tooltipPos.y - 8, transform: 'translateY(-100%)' }}
         >
           <div className="text-portal-navy-dark">{data[hoveredIndex].name}</div>
-          <div className="mt-0.5 text-portal-blue-primary font-semibold">{data[hoveredIndex].value} million</div>
+          <div className="mt-0.5 text-portal-blue-primary font-semibold">{data[hoveredIndex].value} {unit}</div>
         </div>
       )}
     </div>
@@ -1231,10 +1284,240 @@ function OmanLineChart({ data }) {
   );
 }
 
+function OmanAreaChart({ data }) {
+  if (!data || data.length === 0) return <p className="text-sm text-portal-gray">No data</p>;
+  const values = data.map((d) => d.value);
+  const minV = Math.min(...values);
+  const maxV = Math.max(...values);
+  const range = maxV - minV || 1;
+  const w = 420;
+  const h = 160;
+  const pad = { left: 40, right: 20, top: 10, bottom: 30 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+  const step = data.length <= 1 ? 1 : data.length - 1;
+  const points = data.map((d, i) => {
+    const x = pad.left + (i / step) * chartW;
+    const y = pad.top + chartH - ((d.value - minV) / range) * chartH;
+    return `${x},${y}`;
+  }).join(' ');
+  const areaPoints = `${pad.left},${h - pad.bottom} ${points} ${pad.left + chartW},${h - pad.bottom}`;
+  const labelKey = data[0] && 'year' in data[0] ? 'year' : 'name';
+  return (
+    <div className="relative min-h-[120px] w-full">
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="min-h-[120px]" preserveAspectRatio="xMidYMid meet">
+        <polygon points={areaPoints} fill="rgba(0,82,135,0.25)" stroke="#005287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points={points} fill="none" stroke="#005287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {data.map((d, i) => {
+          const x = pad.left + (i / step) * chartW;
+          const y = pad.top + chartH - ((d.value - minV) / range) * chartH;
+          return (
+            <g key={d[labelKey] ?? i}>
+              <circle cx={x} cy={y} r={4} fill="#005287" />
+              <text x={x} y={h - 6} textAnchor="middle" className="fill-portal-gray text-xs" style={{ fontFamily: 'system-ui' }}>{d[labelKey] ?? i}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function OmanPieChart({ data }) {
+  if (!data || data.length === 0) return <p className="text-sm text-portal-gray">No data</p>;
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return <p className="text-sm text-portal-gray">No data</p>;
+  const colors = ['#005287', '#133c8b', '#1a5a9e', '#0d6ba3', '#2a7ab8', '#3d8fc9'];
+  let acc = 0;
+  const segments = data.map((d, i) => {
+    const pct = d.value / total;
+    const start = acc;
+    acc += pct;
+    return { ...d, start, end: acc, pct, color: colors[i % colors.length] };
+  });
+  const cx = 210;
+  const cy = 90;
+  const r = 70;
+  const toPath = (start, end) => {
+    const a1 = start * 2 * Math.PI - Math.PI / 2;
+    const a2 = end * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + r * Math.cos(a1);
+    const y1 = cy + r * Math.sin(a1);
+    const x2 = cx + r * Math.cos(a2);
+    const y2 = cy + r * Math.sin(a2);
+    const large = end - start > 0.5 ? 1 : 0;
+    return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+  };
+  return (
+    <div className="relative min-h-[120px] w-full">
+      <svg width="100%" viewBox="0 0 420 180" className="min-h-[120px]" preserveAspectRatio="xMidYMid meet">
+        {segments.map((s, i) => (
+          <path key={s.name} d={toPath(s.start, s.end)} fill={s.color} stroke="white" strokeWidth="2" />
+        ))}
+      </svg>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+        {segments.map((s) => (
+          <span key={s.name} className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
+            <span className="text-portal-navy-dark">{s.name}</span>
+            <span className="text-portal-gray">{(s.pct * 100).toFixed(1)}%</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OmanScatterChart({ data }) {
+  if (!data || data.length === 0) return <p className="text-sm text-portal-gray">No data</p>;
+  const values = data.map((d) => d.value);
+  const maxV = Math.max(...values);
+  const w = 420;
+  const h = 160;
+  const pad = { left: 40, right: 20, top: 10, bottom: 30 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+  const labelKey = data[0] && 'year' in data[0] ? 'year' : 'name';
+  return (
+    <div className="relative min-h-[120px] w-full">
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="min-h-[120px]" preserveAspectRatio="xMidYMid meet">
+        {data.map((d, i) => {
+          const x = pad.left + ((i + 1) / (data.length + 1)) * chartW;
+          const y = pad.top + chartH - (d.value / (maxV || 1)) * chartH;
+          return (
+            <g key={d[labelKey] ?? i}>
+              <circle cx={x} cy={y} r={6} fill="#005287" />
+              <text x={x} y={h - 6} textAnchor="middle" className="fill-portal-gray text-xs" style={{ fontFamily: 'system-ui' }}>{d[labelKey] ?? i}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function OmanFunnelChart({ data }) {
+  if (!data || data.length === 0) return <p className="text-sm text-portal-gray">No data</p>;
+  const maxVal = Math.max(...data.map((d) => d.value));
+  const w = 420;
+  const h = 180;
+  const barH = 18;
+  const gap = 6;
+  const labelW = 120;
+  const barW = w - labelW - 40;
+  return (
+    <div className="relative min-h-[140px] w-full">
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="min-h-[140px]" preserveAspectRatio="xMidYMid meet">
+        {data.map((d, i) => {
+          const width = (d.value / maxVal) * barW;
+          const y = i * (barH + gap) + 4;
+          return (
+            <g key={d.name}>
+              <rect x={labelW} y={y} width={width} height={barH - 2} rx={3} fill="#005287" />
+              <text x={0} y={y + barH - 4} className="fill-[#161616] text-xs" style={{ fontFamily: 'system-ui' }}>{d.name}</text>
+              <text x={labelW + width + 6} y={y + barH - 4} className="fill-portal-gray text-xs" style={{ fontFamily: 'system-ui' }}>{d.value}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 function parseChartContent(content) {
   if (typeof content !== 'string' || !content.startsWith('__CHART__|')) return null;
   const parts = content.slice('__CHART__|'.length).split('|');
   return { type: parts[0] || 'bar', datasetKey: parts[1] || 'governorates' };
+}
+
+/** Parse AI prompt for chart type change; returns new __CHART__|type|datasetKey or null */
+function parseChartPromptForSection(prompt) {
+  const p = (prompt || '').toLowerCase().trim();
+  if (!p) return null;
+  const wantLine = /\bline\b/.test(p) || /\btrend\b/.test(p) || /\bover time\b/.test(p) || /\btime series\b/.test(p);
+  const wantBar = /\bbar\b/.test(p) || /\bby governorate\b/.test(p) || /\bpopulation\b/.test(p) || /\bcomparison\b/.test(p);
+  const wantPie = /\bpie\b/.test(p) || /\bproportion\b/.test(p) || /\bshare\b/.test(p) || /\bpercentage\b/.test(p);
+  const wantArea = /\barea\b/.test(p) || /\bstacked\b/.test(p) || /\bcumulative\b/.test(p);
+  const wantScatter = /\bscatter\b/.test(p) || /\bcorrelation\b/.test(p) || /\bxy\b/.test(p);
+  const wantFunnel = /\bfunnel\b/.test(p) || /\bpipeline\b/.test(p);
+  const wantUnemployment = /\bunemployment\b/.test(p);
+  const wantGdp = /\bgdp\b/.test(p) || /\bgrowth\b/.test(p);
+  const wantEmployment = /\bemployment\b/.test(p) || /\bemploy(ed|ees)?\b/.test(p) || /\bjobs?\b/.test(p) || /\blabour\b/.test(p) || /\blabor\b/.test(p);
+  const wantPopulation = /\bpopulation\b/.test(p);
+  let type = 'bar';
+  let datasetKey = 'governorates';
+  if (wantPie) type = 'pie';
+  else if (wantArea) type = 'area';
+  else if (wantScatter) type = 'scatter';
+  else if (wantFunnel) type = 'funnel';
+  else if (wantLine) type = 'line';
+  else if (wantBar) type = 'bar';
+  if (wantUnemployment) datasetKey = 'unemployment';
+  else if (wantGdp) datasetKey = 'gdpGrowth';
+  else if (wantEmployment) datasetKey = 'employment';
+  else if (wantPopulation) datasetKey = 'governorates';
+  return `__CHART__|${type}|${datasetKey}`;
+}
+
+const CHART_TYPES = [
+  { type: 'bar', ds: 'governorates', label: 'Bar' },
+  { type: 'line', ds: 'governorates', label: 'Line' },
+  { type: 'area', ds: 'governorates', label: 'Area' },
+  { type: 'pie', ds: 'governorates', label: 'Pie' },
+  { type: 'scatter', ds: 'governorates', label: 'Scatter' },
+  { type: 'funnel', ds: 'governorates', label: 'Funnel' },
+];
+
+const CHART_DATASET_OPTIONS = [
+  { key: 'governorates', label: 'Population' },
+  { key: 'employment', label: 'Employment' },
+  { key: 'unemployment', label: 'Unemployment' },
+  { key: 'gdpGrowth', label: 'GDP Growth' },
+];
+
+function ChartTypeIcon({ type }) {
+  const w = 20;
+  const h = 14;
+  if (type === 'bar') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <rect x="1" y="8" width="3" height="5" rx="1" fill="currentColor" />
+      <rect x="6" y="4" width="3" height="9" rx="1" fill="currentColor" />
+      <rect x="11" y="6" width="3" height="7" rx="1" fill="currentColor" />
+      <rect x="16" y="2" width="3" height="11" rx="1" fill="currentColor" />
+    </svg>
+  );
+  if (type === 'line') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <polyline points="1,12 5,8 10,6 15,4 19,2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  if (type === 'area') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <path d="M1 12 L5 8 L10 6 L15 4 L19 2 L19 14 L1 14 Z" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="1" />
+    </svg>
+  );
+  if (type === 'pie') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <path d="M10 2 A8 8 0 0 1 16 10 L10 10 Z" fill="currentColor" />
+      <path d="M10 10 A8 8 0 0 1 4 6 L10 10 Z" fill="currentColor" fillOpacity="0.6" />
+      <path d="M10 10 L4 6 A8 8 0 0 1 10 2 Z" fill="currentColor" fillOpacity="0.3" />
+    </svg>
+  );
+  if (type === 'scatter') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <circle cx="4" cy="10" r="2" fill="currentColor" />
+      <circle cx="10" cy="6" r="2" fill="currentColor" />
+      <circle cx="16" cy="4" r="2" fill="currentColor" />
+    </svg>
+  );
+  if (type === 'funnel') return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="opacity-80">
+      <rect x="2" y="1" width="16" height="3" rx="1" fill="currentColor" />
+      <rect x="4" y="5" width="12" height="3" rx="1" fill="currentColor" fillOpacity="0.8" />
+      <rect x="6" y="9" width="8" height="3" rx="1" fill="currentColor" fillOpacity="0.5" />
+    </svg>
+  );
+  return null;
 }
 
 function parseTableContent(content) {
@@ -1246,6 +1529,27 @@ function parseTableContent(content) {
   } catch (_) {
     return null;
   }
+}
+
+/** Parse prompt for table↔chart conversion; returns { toChart: true } or { toTable: true } or null */
+function parseConversionPrompt(prompt) {
+  const p = (prompt || '').toLowerCase().trim();
+  if (!p) return null;
+  const toChart = /\b(convert|change|make|turn|show)\b.*\b(chart|graph)\b/.test(p) || /\b(chart|graph)\b/.test(p) || /\b(make|convert)\s+(it\s+)?a\s+chart\b/.test(p);
+  const toTable = /\b(convert|change|make|turn|show)\b.*\b(table|tabular)\b/.test(p) || /\b(table|tabular)\b/.test(p) || /\b(make|convert)\s+(it\s+)?a\s+table\b/.test(p);
+  if (toChart && !toTable) return { toChart: true };
+  if (toTable && !toChart) return { toTable: true };
+  return null;
+}
+
+/** Convert chart data to table rows for chart→table conversion */
+function chartDataToTableRows(datasetKey) {
+  const data = CHART_DATASETS[datasetKey] || CHART_GOVERNORATES_DATA;
+  if (!data || data.length === 0) return [['Category', 'Value'], ['—', '—']];
+  const labelKey = data[0] && 'year' in data[0] ? 'year' : 'name';
+  const header = [labelKey.charAt(0).toUpperCase() + labelKey.slice(1), 'Value'];
+  const rows = data.map((d) => [String(d[labelKey] ?? ''), d.value]);
+  return [header, ...rows];
 }
 
 /** Format options for text/title sections */
@@ -1347,6 +1651,7 @@ function ReportSectionCard({
   const [showRegenPrompt, setShowRegenPrompt] = useState(false);
   const [regenPrompt, setRegenPrompt] = useState('');
   const [regenerating, setRegenerating] = useState(false);
+  const editAreaRef = useRef(null);
 
   useEffect(() => {
     setEditTitle(section.title);
@@ -1391,6 +1696,12 @@ function ReportSectionCard({
 
   const save = saveAndUnlock;
 
+  /** Only save on blur when focus leaves the edit area entirely (not when moving to another input/button inside) */
+  const handleEditBlur = useCallback((e) => {
+    if (e.relatedTarget && editAreaRef.current?.contains(e.relatedTarget)) return;
+    save();
+  }, [save]);
+
   if (isTitleOnly) {
     const fmt = section.format || {};
     const fmtClasses = getFormatClasses(fmt);
@@ -1400,16 +1711,16 @@ function ReportSectionCard({
         className={`rounded-[10px] border-2 bg-white p-4 shadow-card ${isActive ? 'border-portal-blue-primary' : 'border-portal-border'}`}
       >
         {editing ? (
-          <>
+          <div ref={editAreaRef} onClick={(e) => e.stopPropagation()}>
             <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
             <input
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              onBlur={save}
+              onBlur={handleEditBlur}
               className="w-full border-0 border-b border-portal-border-light bg-transparent font-display text-xl font-bold focus:outline-none"
               autoFocus
             />
-          </>
+          </div>
         ) : (
           <h2 className={`font-display font-bold ${fmtClasses || 'text-xl text-portal-navy-dark'}`} onDoubleClick={startEditing}>
             {section.title}
@@ -1422,8 +1733,13 @@ function ReportSectionCard({
   const renderChart = () => {
     const spec = chartSpec || { type: 'bar', datasetKey: 'governorates' };
     const data = CHART_DATASETS[spec.datasetKey] || CHART_GOVERNORATES_DATA;
+    const barUnit = spec.datasetKey === 'employment' ? 'thousands' : 'million';
     if (spec.type === 'line') return <OmanLineChart data={data} />;
-    return <OmanBarChart data={data} />;
+    if (spec.type === 'area') return <OmanAreaChart data={data} />;
+    if (spec.type === 'pie') return <OmanPieChart data={data} />;
+    if (spec.type === 'scatter') return <OmanScatterChart data={data} />;
+    if (spec.type === 'funnel') return <OmanFunnelChart data={data} />;
+    return <OmanBarChart data={data} unit={barUnit} />;
   };
 
   const heightClass =
@@ -1444,6 +1760,7 @@ function ReportSectionCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <div ref={editAreaRef} onClick={(e) => editing && e.stopPropagation()}>
       <div className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-2">
@@ -1473,14 +1790,11 @@ function ReportSectionCard({
                 </svg>
               </button>
             )}
-            {sectionHeader && (
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-portal-gray">{sectionHeader}</p>
-            )}
             {editing ? (
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                onBlur={save}
+                onBlur={handleEditBlur}
                 className="w-full border-0 border-b border-portal-border-light bg-transparent font-display text-lg font-bold tracking-[-0.5px] text-portal-navy-dark focus:outline-none"
                 autoFocus
               />
@@ -1509,10 +1823,10 @@ function ReportSectionCard({
             )}
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); startEditing(); }}
+              onClick={(e) => { e.stopPropagation(); editing ? save() : startEditing(); }}
               disabled={isLockedByOther}
               className="flex h-7 w-7 items-center justify-center rounded-full border border-portal-border bg-white text-portal-gray hover:text-portal-navy disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Edit section"
+              title={editing ? 'Save and exit edit' : 'Edit section'}
             >
               <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
             </button>
@@ -1624,7 +1938,7 @@ function ReportSectionCard({
                     value={regenPrompt}
                     onChange={(e) => setRegenPrompt(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleRegenerate(); if (e.key === 'Escape') setShowRegenPrompt(false); }}
-                    placeholder="How should this section change?"
+                    placeholder={isChart ? "e.g. Show as pie chart, convert to table" : isTable ? "e.g. Convert to chart, make it a chart" : "How should this section change?"}
                     className="h-7 w-40 border-0 bg-transparent text-[11px] text-portal-navy-dark placeholder:text-portal-gray focus:outline-none"
                     autoFocus
                   />
@@ -1654,36 +1968,59 @@ function ReportSectionCard({
             <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
           )}
           {isChart && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-portal-border bg-white px-4 py-2.5 shadow-premium">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-gray-muted">Chart type</span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { type: 'bar', ds: 'governorates', label: 'Bar · Governorates' },
-                  { type: 'line', ds: 'governorates', label: 'Line · Governorates' },
-                  { type: 'line', ds: 'unemployment', label: 'Line · Unemployment' },
-                  { type: 'line', ds: 'gdpGrowth', label: 'Line · GDP Growth' },
-                ].map(({ type, ds, label }) => {
-                  const val = `__CHART__|${type}|${ds}`;
-                  const isActive = editContent === val;
-                  return (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => { setEditContent(val); onUpdate({ content: val }); }}
-                      className={`rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all ${isActive ? 'bg-portal-blue text-white shadow-sm' : 'bg-portal-bg-section/80 text-portal-navy hover:bg-portal-blue/10'}`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
+            <div className="mb-3 space-y-4 rounded-xl border border-portal-border bg-white p-4 shadow-premium">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-portal-gray-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span className="text-sm font-semibold text-portal-navy-dark">Chart Settings</span>
+              </div>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-portal-gray-muted">Editing chart for: {section.title}</p>
+              <p className="mb-2 text-[11px] text-portal-gray-muted">Use Regenerate above to change chart type or convert to table (e.g. &quot;Show as pie chart&quot;, &quot;Convert to table&quot;).</p>
+
+              {/* Manual chart type */}
+              <div>
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wider text-portal-gray-muted">Chart type (manual)</label>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  {CHART_TYPES.map(({ type }) => {
+                    const spec = parseChartContent(editContent) || { type: 'bar', datasetKey: 'governorates' };
+                    const currentDs = spec.datasetKey || 'governorates';
+                    const val = `__CHART__|${type}|${currentDs}`;
+                    const isActive = (parseChartContent(editContent) || {}).type === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => { setEditContent(val); onUpdate({ content: val }); }}
+                        className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-2 py-2.5 text-[11px] font-medium transition-all ${isActive ? 'border-portal-blue bg-portal-blue/10 text-portal-blue' : 'border-transparent bg-portal-bg-section/80 text-portal-navy hover:border-portal-border hover:bg-portal-blue/5'}`}
+                      >
+                        <ChartTypeIcon type={type} />
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-medium text-portal-gray-muted">Dataset:</span>
+                  {CHART_DATASET_OPTIONS.map((dsOpt) => {
+                    const spec = parseChartContent(editContent) || { type: 'bar', datasetKey: 'governorates' };
+                    const val = `__CHART__|${spec.type}|${dsOpt.key}`;
+                    const isActive = (parseChartContent(editContent) || {}).datasetKey === dsOpt.key;
+                    return (
+                      <button
+                        key={dsOpt.key}
+                        type="button"
+                        onClick={() => { setEditContent(val); onUpdate({ content: val }); }}
+                        className={`rounded px-2 py-1 text-[11px] font-medium ${isActive ? 'bg-portal-blue text-white' : 'bg-portal-bg-section/80 text-portal-navy hover:bg-portal-blue/10'}`}
+                      >
+                        {dsOpt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
           {isTable && (
             <FormatToolbar format={editFormat} onChange={setEditFormat} onSave={applyFormatToSection} />
-          )}
-          {isChart && (
-            <p className="mt-1 text-[11px] text-portal-gray-muted">Advanced: edit raw format above</p>
           )}
           {isTable && (
             <p className="mt-1 text-[11px] text-portal-gray-muted">JSON array of rows, e.g. [["Header1","Header2"],["A","B"]]</p>
@@ -1691,7 +2028,7 @@ function ReportSectionCard({
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            onBlur={save}
+            onBlur={handleEditBlur}
             className="mt-3 min-h-[80px] w-full rounded-xl border border-portal-border bg-white px-4 py-3 text-sm transition-all focus:border-portal-blue focus:outline-none focus:ring-2 focus:ring-portal-blue/10 font-mono"
             rows={4}
           />
@@ -1722,6 +2059,7 @@ function ReportSectionCard({
           </p>
         </>
       )}
+      </div>
       </div>
     </div>
   );

@@ -2,38 +2,56 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePersona } from '../context/PersonaContext';
 import { useAuth } from '../context/AuthContext';
+import { profileToPersona } from '../lib/personaUtils';
+import { getTrendingInsightsForPersona } from '../data/trendingInsights';
 
-const INSIGHTS_BY_INTEREST = {
-  'International trade': [
-    { id: '1', title: 'Trade surplus widened in Q4 2024', metric: '+2.1%', trend: 'up', query: 'Show trade and balance of payments for Oman' },
-    { id: '2', title: 'China leads export partners', metric: '24.8%', trend: 'neutral', query: 'International trade statistics Oman by partner' },
-  ],
-  'Education': [
-    { id: '3', title: 'Literacy rate above 95%', metric: '96.1%', trend: 'up', query: 'Education statistics by governorate' },
-    { id: '4', title: 'Higher education enrolment up', metric: '+4.2%', trend: 'up', query: 'Education enrolment by level Oman' },
-  ],
-  'Labour market': [
-    { id: '5', title: 'Unemployment at 2.1%', metric: '2.1%', trend: 'down', query: 'Labour force survey Oman 2024' },
-    { id: '6', title: 'Employment growth in services', metric: '+3.2%', trend: 'up', query: 'Employment by sector Oman' },
-  ],
-  default: [
-    { id: '7', title: 'Population growth steady', metric: '4.7M', trend: 'up', query: 'Show population by governorate' },
-    { id: '8', title: 'GDP growth 2.7% in 2024', metric: '2.7%', trend: 'up', query: 'GDP growth trends Oman' },
-  ],
-};
+/** Map PDF insight to widget format (title, metric, trend, query) */
+function toWidgetInsight(insight, index) {
+  const metrics = [
+    '141,277', '325 vacancies', '12.1% YoY', '80,764',
+    '4.0%', 'RO 1.3B', 'OMR 800M', '1.5%',
+    '111.10', '5.88%', '17.0%', 'Open data',
+    'Cross-domain', '80,764', '111.10', 'Before/after',
+  ];
+  const queries = [
+    'Higher education enrollment and AI skills demand',
+    'Labour market vacancies and graduate employment',
+    'Tourism growth and hospitality study paths',
+    'Female participation in higher education',
+    'IMF Oman 2026 GDP and fiscal outlook',
+    'Tax revenue and fiscal resilience',
+    'Tourism investment and diversification',
+    'Digital economy and AI indicators',
+    'CPI inflation by basket category',
+    'Graduate employment segmentation',
+    'Labour market by age and gender',
+    'Open data and AI analytics products',
+    'Cross-domain statistical integration',
+    'Gender and education disaggregation',
+    'CPI basket-level analysis',
+    'Regional tourism impact monitoring',
+  ];
+  const i = index % metrics.length;
+  return {
+    id: insight.id,
+    title: insight.title,
+    metric: metrics[i] || '—',
+    trend: ['up', 'up', 'neutral', 'up'][index % 4],
+    query: queries[i] || insight.title,
+  };
+}
 
-function getInsights(interests) {
-  const first = (interests || [])[0];
-  const key = Object.keys(INSIGHTS_BY_INTEREST).find((k) => first?.toLowerCase().includes(k.toLowerCase()));
-  return INSIGHTS_BY_INTEREST[key] || INSIGHTS_BY_INTEREST.default;
+function getInsights(persona, profile) {
+  const effectivePersona = profile ? profileToPersona(profile) : persona;
+  const insights = getTrendingInsightsForPersona(effectivePersona).slice(0, 4);
+  return insights.map((ins, i) => toWidgetInsight(ins, i));
 }
 
 export default function AIInsightsWidget() {
   const [activeId, setActiveId] = useState(null);
   const { currentPersona } = usePersona();
   const { profile } = useAuth();
-  const interests = profile?.interests || currentPersona?.interests || [];
-  const insights = getInsights(interests);
+  const insights = getInsights(currentPersona, profile);
 
   return (
     <div className="rounded-2xl border border-portal-border/80 bg-gradient-to-br from-white to-portal-ai-bg/30 p-4 shadow-sm">

@@ -1,62 +1,80 @@
-import { MOCK_DATASETS } from './omanMockData';
+/**
+ * Trending AI Insights – persona-based from "My profile data per persona" PDF.
+ * Oman News Agency, Knoema, IMF, Times of Oman, MTCIT references.
+ */
 
-export const TRENDING_INSIGHTS = [
-  {
-    id: 'trade-red-sea',
-    title: 'Red Sea shipping disruptions and their impact on Oman trade flows',
-    category: 'International Trade · Shipping Volumes',
-    tag: 'Live',
-    age: '2d ago',
-    region: 'International trade',
-    image: 'https://picsum.photos/seed/redsea/800/480',
-    relatedDatasetIds: [8, 7],
-    aiSummary:
-      'AI summary: Simulated analysis suggests that rerouting vessels away from the Red Sea has temporarily increased shipping times and logistics costs, but Omani ports are capturing a greater share of regional trans‑shipment.',
-  },
-  {
-    id: 'oil-prices',
-    title: 'Global oil price volatility and its effect on fuel costs',
-    category: 'Oil Prices · Energy Production',
-    tag: 'Insight',
-    age: '3d ago',
-    region: 'Energy & oil',
-    image: 'https://picsum.photos/seed/oil/800/480',
-    relatedDatasetIds: [7, 10],
-    aiSummary:
-      'AI summary: Mock analysis indicates that while global benchmarks remain volatile, domestic fuel prices in Oman have been partially cushioned by fiscal measures and subsidy mechanisms.',
-  },
-  {
-    id: 'food-inflation',
-    title: 'Food price inflation and changes in household consumption patterns',
-    category: 'Consumer Prices · Food Imports',
-    tag: 'Inflation',
-    age: '6d ago',
-    region: 'Prices & inflation',
-    image: 'https://picsum.photos/seed/food/800/480',
-    relatedDatasetIds: [3],
-    aiSummary:
-      'AI summary: Based on simulated CPI data, food inflation has eased compared to 2022 peaks, with substitution towards locally produced items helping to stabilise expenditure for most households.',
-  },
-  {
-    id: 'heat-waves',
-    title: 'Extreme heat waves and rising energy demand for cooling',
-    category: 'Electricity Production · Peak Demand',
-    tag: 'Climate',
-    age: '1w ago',
-    region: 'Climate & environment',
-    image: 'https://picsum.photos/seed/heat/800/480',
-    relatedDatasetIds: [6],
-    aiSummary:
-      'AI summary: Demo insights show peak electricity demand rising faster in coastal governorates, underscoring the importance of efficiency measures and renewable capacity.',
-  },
-];
+import { MOCK_DATASETS, DATASET_NAME_TO_ID } from './omanMockData';
+import { getInsightsForPersona, TRENDING_INSIGHTS_BY_PERSONA } from './profileDataPerPersona';
 
-export function getTrendingInsightById(id) {
-  const base = TRENDING_INSIGHTS.find((i) => i.id === id);
-  if (!base) return null;
-  const relatedDatasets = base.relatedDatasetIds
-    .map((datasetId) => MOCK_DATASETS.find((d) => d.id === datasetId))
+/** Build relatedDatasets from relatedDatasetNames using MOCK_DATASETS */
+function resolveRelatedDatasets(relatedDatasetNames = []) {
+  const seen = new Set();
+  return relatedDatasetNames
+    .map((name) => {
+      const id = DATASET_NAME_TO_ID[name];
+      const d = id ? MOCK_DATASETS.find((x) => x.id === id) : MOCK_DATASETS.find((x) => (x.title || '').toLowerCase().includes(name.toLowerCase()));
+      if (d && !seen.has(d.id)) {
+        seen.add(d.id);
+        return d;
+      }
+      if (!seen.has(name)) {
+        seen.add(name);
+        return { id: name, title: name, category: 'General', description: '', lastUpdated: '', source: 'NCSI' };
+      }
+      return null;
+    })
     .filter(Boolean);
-  return { ...base, relatedDatasets };
 }
 
+/** Convert PDF insight to portal format (for cards) */
+function toCardFormat(insight) {
+  const relatedDatasets = resolveRelatedDatasets(insight.relatedDatasetNames);
+  const relatedDatasetIds = relatedDatasets.filter((d) => typeof d.id === 'number').map((d) => d.id);
+  return {
+    id: insight.id,
+    title: insight.title,
+    category: insight.category,
+    tag: insight.tag,
+    age: insight.age,
+    region: insight.region,
+    image: insight.image,
+    relatedDatasetIds: relatedDatasetIds.length ? relatedDatasetIds : [1, 2, 3],
+    aiSummary: insight.aiPerspective || insight.whatThisIsAbout,
+    whatThisIsAbout: insight.whatThisIsAbout,
+    aiPerspective: insight.aiPerspective,
+    relatedDatasetNames: insight.relatedDatasetNames,
+    sourceLinks: insight.sourceLinks,
+    linkedPhoto: insight.linkedPhoto,
+  };
+}
+
+/** Get trending insights for a persona (for LoggedInHomePage, AIInsightsWidget) */
+export function getTrendingInsightsForPersona(persona) {
+  const role = persona?.role || 'Economist';
+  const insights = getInsightsForPersona(role);
+  return insights.map(toCardFormat);
+}
+
+/** All insights flattened for backward compatibility / fallback */
+export const TRENDING_INSIGHTS = (() => {
+  const all = [];
+  Object.values(TRENDING_INSIGHTS_BY_PERSONA).forEach((arr) => {
+    arr.forEach((i) => {
+      if (!all.find((x) => x.id === i.id)) all.push(i);
+    });
+  });
+  return all.map(toCardFormat);
+})();
+
+/** Get a single insight by id (searches across all personas) */
+export function getTrendingInsightById(id) {
+  for (const arr of Object.values(TRENDING_INSIGHTS_BY_PERSONA)) {
+    const found = arr.find((i) => i.id === id);
+    if (found) {
+      const card = toCardFormat(found);
+      const relatedDatasets = resolveRelatedDatasets(found.relatedDatasetNames);
+      return { ...card, relatedDatasets };
+    }
+  }
+  return null;
+}

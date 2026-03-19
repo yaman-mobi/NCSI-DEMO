@@ -3,7 +3,7 @@ import { usePersona } from '../context/PersonaContext';
 import { Link } from 'react-router-dom';
 
 const LANGUAGES = ['English', 'Arabic'];
-const ROLES = ['Economic Analyst', 'University Student', 'Data Scientist', 'Policy Researcher', 'Business Executive', 'Journalist', 'Government Official'];
+const ROLES = ['University Student', 'Economist', 'Data Analyst', 'Statistician', 'Economic Analyst', 'Data Scientist', 'Policy Researcher', 'Business Executive', 'Journalist', 'Government Official'];
 const REGIONS = ['Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur', 'Ibri', 'Other'];
 const INTERESTS = ['International Trade', 'Social Trends', 'Energy & Oil', 'Tourism', 'Education', 'Technology', 'Finance', 'Healthcare', 'Demographics', 'Infrastructure'];
 
@@ -35,7 +35,7 @@ export default function AdminPersonasPage() {
         <div className="mt-12 rounded-xl border border-portal-border bg-portal-bg-section p-6">
           <h3 className="font-display text-lg font-bold text-[#161616]">Technical demo checklist (aligned with RFP)</h3>
           <ul className="mt-3 list-inside list-disc space-y-2 text-sm text-portal-gray">
-            <li><strong>Part 1 – Live Persona Configuration:</strong> Configure the two personas above (Language, Role/Occupation, Region/Geography, Stated Interests). Use the <strong>View as</strong> dropdown in the header to switch between them.</li>
+            <li><strong>Part 1 – Live Persona Configuration:</strong> Configure the four personas above (University Student, Economist, Data Analyst, Statistician). Use the <strong>View as</strong> dropdown in the header or <strong>Preferences</strong> on the home page to switch between them.</li>
             <li><strong>Dynamic UX:</strong> Go to Home — hero tagline, key indicators order, and &quot;Featured for you&quot; sections change per persona.</li>
             <li><strong>Contextual awareness – Event 1:</strong> Select <strong>Event: US Tariff change</strong>, then <strong>View as: Economic Analyst</strong>. Banner appears; click &quot;View trade &amp; BoP data&quot; to see trade datasets and Balance of Payments highlighted.</li>
             <li><strong>Contextual awareness – Event 2:</strong> Select <strong>Event: National Census released</strong>, then <strong>View as: University Student</strong>. Banner appears; click &quot;View census data&quot; to see census data and reports for their region and demographics.</li>
