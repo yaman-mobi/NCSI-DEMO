@@ -338,13 +338,22 @@ export default function LoggedInHomePage() {
                     </p>
                   </div>
                 </div>
-                <a
-                  href="https://realsoftapps.com/RealDataPortal_Demo/home/indicator"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center rounded-full bg-portal-blue px-4 py-2 text-xs font-semibold text-white shadow hover:bg-portal-blue-dark"
-                >
-                  Browse Datasets
-                </a>
+                {import.meta.env.PROD ? (
+                  <a
+                    href="https://realsoftapps.com/RealDataPortal_Demo/home/indicator"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center rounded-full bg-portal-blue px-4 py-2 text-xs font-semibold text-white shadow hover:bg-portal-blue-dark"
+                  >
+                    Browse Datasets
+                  </a>
+                ) : (
+                  <Link
+                    to="/datasets"
+                    className="inline-flex items-center rounded-full bg-portal-blue px-4 py-2 text-xs font-semibold text-white shadow hover:bg-portal-blue-dark"
+                  >
+                    Browse Datasets
+                  </Link>
+                )}
               </div>
 
               {/* Feed cards – For You (persona-specific) or Trending (PDF TRENDING DATASETS FOR ALL) */}

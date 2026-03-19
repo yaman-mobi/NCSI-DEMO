@@ -7,16 +7,12 @@ import { useAuth } from '../context/AuthContext';
 import logo from '../images/ncis-logo.svg';
 
 
+const EXTERNAL_BASE = 'https://realsoftapps.com/RealDataPortal_Demo';
+const isProd = import.meta.env.PROD;
 const navItems = [
-  {
-    label: 'Home',
-    path: 'https://realsoftapps.com/RealDataPortal_Demo/home/landing',
-  },
+  { label: 'Home', path: isProd ? `${EXTERNAL_BASE}/home/landing` : '/' },
   { label: 'My Queries', path: '/my-queries' },
-  {
-    label: 'Datasets',
-    path: 'https://realsoftapps.com/RealDataPortal_Demo/home/indicator',
-  },
+  { label: 'Datasets', path: isProd ? `${EXTERNAL_BASE}/home/indicator` : '/datasets' },
   { label: 'Help', path: '/help' },
   { label: 'AI Assistant', path: '/ai-assistant' },
 ];
@@ -48,7 +44,7 @@ export default function TopBar() {
   ? [
     { label: 'My Profile', path: '/' }, 
     ...navItems, 
-    { label: 'Data Copilot', path: 'https://realsoftapps.com/RealDataPortal_Demo/copilot' }
+    { label: 'Data Copilot', path: isProd ? `${EXTERNAL_BASE}/copilot` : '/ai-assistant' }
   ]
   : navItems;
 

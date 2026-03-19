@@ -42,7 +42,7 @@ function loadStoredProfile() {
 }
 
 function saveAuth(user) {
-  if (user) {
+  if (user && user.userId && user.email) {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
       userId: user.userId,
       email: user.email,

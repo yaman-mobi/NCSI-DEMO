@@ -45,6 +45,9 @@ export default function RegisterPage() {
   };
 
   const getFakeToken = async (email) => {
+    if (!import.meta.env.PROD) {
+      return `demo-token-${Date.now()}-${email.replace(/[^a-z0-9]/gi, '')}`;
+    }
     const res = await fetch(`${url}/auth/get-fake-token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
