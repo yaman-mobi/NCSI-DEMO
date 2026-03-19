@@ -45,7 +45,11 @@ export default function TopBar() {
   };
 
   const menuItems = isAuthenticated
-  ? [{ label: 'My Profile', path: '/' }, ...navItems]
+  ? [
+    { label: 'My Profile', path: '/' }, 
+    ...navItems, 
+    { label: 'Data Copilot', path: 'https://realsoftapps.com/RealDataPortal_Demo/copilot' }
+  ]
   : navItems;
 
   return (

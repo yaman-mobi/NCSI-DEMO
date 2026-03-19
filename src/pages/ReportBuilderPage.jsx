@@ -20,6 +20,7 @@ import { IconSparkle, IconLock, IconComment } from '../components/Icons';
 import TopBar from '../components/TopBar';
 import InsightCards from '../components/InsightCards';
 import RecommendedForYou from '../components/RecommendedForYou';
+import UpperBar from '../components/UpperBar';
 
 const STORAGE_KEY = 'ncsi_smart_portal_reports';
 const PRESENCE_KEY = 'ncsi_report_presence';
@@ -487,6 +488,7 @@ export default function ReportBuilderPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-portal-bg-section">
+      <UpperBar />
       <TopBar />
       <div className="flex h-[calc(100vh-3.5rem)] flex-col" id="main-content">
       {/* Main header – report title + Live/role controls */}
