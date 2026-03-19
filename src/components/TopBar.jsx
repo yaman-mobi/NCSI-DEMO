@@ -10,9 +10,9 @@ import logo from '../images/ncis-logo.svg';
 const EXTERNAL_BASE = 'https://realsoftapps.com/RealDataPortal_Demo';
 const isProd = import.meta.env.PROD;
 const navItems = [
-  { label: 'Home', path: isProd ? `${EXTERNAL_BASE}/home/landing` : '/' },
+  { label: 'Home', path: `${EXTERNAL_BASE}/home/landing` },
   { label: 'My Queries', path: '/my-queries' },
-  { label: 'Datasets', path: isProd ? `${EXTERNAL_BASE}/home/indicator` : '/datasets' },
+  { label: 'Datasets', path: `${EXTERNAL_BASE}/home/indicator` },
   { label: 'Help', path: '/help' },
   { label: 'AI Assistant', path: '/ai-assistant' },
 ];
@@ -42,9 +42,9 @@ export default function TopBar() {
 
   const menuItems = isAuthenticated
   ? [
-    { label: 'My Profile', path: '/' }, 
-    ...navItems, 
-    { label: 'Data Copilot', path: isProd ? `${EXTERNAL_BASE}/copilot` : '/ai-assistant' }
+    { label: 'My Profile', path: isProd ? `${EXTERNAL_BASE}/app/profile` : '/' },
+    ...navItems,
+    { label: 'Data Copilot', path: `${EXTERNAL_BASE}/copilot` }
   ]
   : navItems;
 
@@ -121,19 +121,28 @@ export default function TopBar() {
           aria-label="Main navigation"
         >
           {menuItems.map(({ label, path }) => {
+            const isExternal = path.startsWith('http');
+            const exactMatch = !isExternal && location.pathname === path;
+            const startsWithMatch = !isExternal && path !== '/' && location.pathname.startsWith(path);
             const active =
-              location.pathname === path ||
-              (path !== '/' && location.pathname.startsWith(path));
-            return (
-              <NavLink
-                key={label}
-                to={path}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded transition-colors whitespace-nowrap f-16 ${
-                  active
-                    ? 'text-white underline decoration-2 underline-offset-2'
-                    : 'text-white/90 hover:text-white'
-                }`}
-              >
+              (exactMatch && (
+                (path !== '/' && path !== '/ai-assistant') ||
+                (path === '/' && label === 'Home') ||
+                (path === '/ai-assistant' && label === 'AI Assistant')
+              )) ||
+              (startsWithMatch && (
+                path !== '/ai-assistant' ||
+                (path === '/ai-assistant' && label === 'AI Assistant')
+              ));
+            const linkClass = `flex items-center px-3 py-2 text-sm font-medium rounded transition-colors whitespace-nowrap f-16 ${
+              active ? 'text-white underline decoration-2 underline-offset-2' : 'text-white/90 hover:text-white'
+            }`;
+            return isExternal ? (
+              <a key={label} href={path} className={linkClass} rel="noopener noreferrer">
+                {label}
+              </a>
+            ) : (
+              <NavLink key={label} to={path} className={linkClass}>
                 {label}
               </NavLink>
             );

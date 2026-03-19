@@ -687,7 +687,7 @@ export default function ReportBuilderPage() {
                     role="menuitem"
                     onClick={async () => {
                       setExporting(true);
-                      const ok = await exportToPDF(canvasRef.current, (report?.title || 'NCSI-Report').replace(/[^a-z0-9]/gi, '_'));
+                      const ok = await exportToPDF(report, (report?.title || 'NCSI-Report').replace(/[^a-z0-9]/gi, '_'));
                       setShowExportMenu(false);
                       setExporting(false);
                       if (ok) showToast('PDF downloaded.');
