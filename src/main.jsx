@@ -6,7 +6,7 @@ import './index.css'
 
 // Log deployed version/config so you can verify prod configs in production
 const env = import.meta.env
-const version = env.PROD ? 'prod' : 'dev'
+const version = env.PROD ? 'prod' : 'prod'
 console.log(`[NCSI Demo] Deployed version: ${version}`, {
   mode: env.MODE,
   prod: env.PROD,
