@@ -6,7 +6,7 @@ export default function LandingPage() {
   const { isAuthenticated } = useAuth();
 
    useEffect(() => {
-    if (import.meta.env.PROD && !isAuthenticated) {
+    if (!isAuthenticated) {
       window.location.replace(
         "https://realsoftapps.com/RealDataPortal_Demo/home/landing"
       );

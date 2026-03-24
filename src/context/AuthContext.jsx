@@ -121,6 +121,7 @@ export function AuthProvider({ children }) {
     setProfileState(null);
     saveAuth(null);
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('ncsi_smart_portal_auth');
   }, []);
 
   const value = {
