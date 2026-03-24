@@ -5,13 +5,32 @@
  */
 
 import { CHART_DATASETS } from '../data/omanMockData';
-import logoSvg from '../images/ncis-logo.svg?raw';
+import NCSI_LOGO_DATA from '../data/ncsiLogoBase64.js';
 
-/** Extract base64 PNG data URL from NCSI logo SVG (contains embedded PNG) */
+/** Get NCSI logo as base64 PNG data URL (for PDF) */
 function getLogoDataUrl() {
+  return NCSI_LOGO_DATA || null;
+}
+
+/** PptxGenJS expects "image/png;base64,..." without the "data:" prefix */
+function toPptxImageData(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
+  if (dataUrl.startsWith('data:')) return dataUrl.slice(5);
+  return dataUrl;
+}
+
+/** Fallback: fetch PNG from public folder and return data URL */
+async function fetchLogoDataUrl() {
   try {
-    const match = logoSvg.match(/(?:xlink:)?href="(data:image\/png;base64,[^"]+)"/);
-    return match ? match[1] : null;
+    const res = await fetch('/ncsi-logo.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
   } catch (_) {
     return null;
   }
@@ -194,11 +213,14 @@ export async function exportToPDF(report = {}, fileName = 'NCSI-Report') {
     pdf.setTextColor(231, 231, 232);
     pdf.text('Sultanate of Oman · National Centre for Statistics & Information', margin, 11);
 
-    const logoData = getLogoDataUrl();
+    let logoData = getLogoDataUrl();
+    if (!logoData) logoData = await fetchLogoDataUrl();
     if (logoData) {
       try {
         pdf.addImage(logoData, 'PNG', pageW / 2 - 18, 18, 36, 12);
-      } catch (_) {}
+      } catch (e) {
+        console.warn('PDF logo add failed:', e);
+      }
     }
 
     pdf.setTextColor(24, 47, 91);
@@ -324,17 +346,23 @@ export async function exportToPPTX(report, fileName = 'NCSI-Report') {
       color: 'E7E7E8',
     });
     try {
-      const logoDataPptx = getLogoDataUrl();
+      let logoDataPptx = toPptxImageData(getLogoDataUrl());
+      if (!logoDataPptx) {
+        const fallback = await fetchLogoDataUrl();
+        logoDataPptx = toPptxImageData(fallback);
+      }
       if (logoDataPptx) {
         titleSlide.addImage({
-          data: logoDataPptx.replace(/^data:/, ''),
+          data: logoDataPptx,
           x: pres.width / 2 - 0.9,
           y: 1.5,
           w: 1.8,
           h: 0.6,
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      console.warn('PPTX logo add failed:', e);
+    }
     titleSlide.addText(report.title || 'Untitled Report', {
       x: 0.9,
       y: 1.9,

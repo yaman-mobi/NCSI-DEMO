@@ -2,6 +2,10 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import { getTrendingInsightById } from '../data/trendingInsights';
 import { SOURCE_LABELS } from '../data/profileDataPerPersona';
+import OmanAITransitionInteractiveInfographic from '../components/OmanAITransitionInteractiveInfographic';
+
+/** Insight id for "AI and digital skills are moving from policy to student opportunity" */
+const INSIGHT_AI_DIGITAL_SKILLS_ID = 'student-ai-digital-skills';
 
 export default function InsightDetailPage() {
   const { id } = useParams();
@@ -30,9 +34,13 @@ export default function InsightDetailPage() {
 
   const { title, category, tag, age, region, image, aiSummary, whatThisIsAbout, aiPerspective, relatedDatasets = [], sourceLinks = [] } = insight;
 
+  const wideLayout = id === INSIGHT_AI_DIGITAL_SKILLS_ID;
+
   return (
     <main id="main-content" className="bg-portal-bg-section/40" role="main">
-      <div className="mx-auto max-w-[1120px] px-4 pb-12 pt-6 md:px-6 lg:px-0">
+      <div
+        className={`mx-auto px-4 pb-12 pt-6 md:px-6 lg:px-0 ${wideLayout ? 'max-w-[min(100%,1360px)]' : 'max-w-[1120px]'}`}
+      >
           {/* Hero */}
           <section className="overflow-hidden rounded-3xl border border-portal-border bg-black/90 text-white shadow-xl">
             <div className="relative flex flex-col md:flex-row">
@@ -79,9 +87,11 @@ export default function InsightDetailPage() {
             </div>
           </section>
 
-          {/* AI summary + body */}
-          <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]">
-            <article className="rounded-2xl border border-portal-border bg-white p-6 shadow-sm">
+          {/* AI summary + body — wider main column when embedded infographic needs room */}
+          <section
+            className={`mt-6 grid gap-6 ${wideLayout ? 'lg:grid-cols-[minmax(0,2.45fr)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]'}`}
+          >
+            <article className="min-w-0 rounded-2xl border border-portal-border bg-white p-6 shadow-sm">
               <h2 className="font-display text-lg font-bold text-portal-navy">What this insight is about</h2>
               <p className="mt-2 text-sm text-portal-gray">
                 {whatThisIsAbout || aiSummary || 'This insight combines narrative context and AI-generated summaries from Oman News Agency, Knoema, IMF, and official data sources.'}
@@ -100,6 +110,14 @@ export default function InsightDetailPage() {
                       {SOURCE_LABELS[url] || url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
                     </a>
                   ))}
+                </div>
+              )}
+              {id === INSIGHT_AI_DIGITAL_SKILLS_ID && (
+                <div
+                  className="mt-5 min-w-0 rounded-xl border border-portal-border-light bg-[#f4f6f5] p-3 sm:p-4"
+                  aria-label="Interactive infographic: Oman AI transition"
+                >
+                  <OmanAITransitionInteractiveInfographic />
                 </div>
               )}
             </article>
