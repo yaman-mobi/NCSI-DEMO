@@ -522,29 +522,29 @@ export default function ReportBuilderPage() {
     <div className="flex min-h-screen w-full flex-col bg-portal-bg-section">
       <UpperBar />
       <TopBar />
-      <div className="flex h-[calc(100vh-3.5rem)] flex-col" id="main-content">
+      <div className="flex min-h-0 flex-1 flex-col" id="main-content">
       {/* Main header – report title + Live/role controls */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-portal-border bg-white px-6">
-        <div className="flex items-center gap-4">
+      <header className="flex shrink-0 flex-col gap-2 border-b border-portal-border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-0 sm:min-h-[3.5rem]">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => navigate('/reports')}
-            className="rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
+            className="shrink-0 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
             aria-label="Back to reports"
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
           </button>
-          <svg className="h-5 w-5 text-portal-gray" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <svg className="hidden h-5 w-5 shrink-0 text-portal-gray sm:block" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
           <input
             value={report?.title || ''}
             onChange={(e) => handleTitleChange(e.target.value)}
             onBlur={persistReport}
-            className="max-w-[240px] border-0 bg-transparent font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark focus:outline-none"
+            className="min-w-0 flex-1 border-0 bg-transparent font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark focus:outline-none sm:max-w-[240px]"
             placeholder="Untitled Report"
             aria-label="Report title"
           />
           {/* Live + role selector – next to title */}
-          <div className="flex items-center gap-2 rounded-lg border border-portal-border-light bg-portal-bg-section/60 px-3 py-1.5">
+          <div className="hidden items-center gap-2 rounded-lg border border-portal-border-light bg-portal-bg-section/60 px-3 py-1.5 sm:flex">
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden />
             <span className="text-xs font-medium text-portal-navy">Live</span>
             <div className="flex -space-x-1.5">
@@ -563,12 +563,12 @@ export default function ReportBuilderPage() {
           </div>
         </div>
         {sections.length === 0 && (
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+            <div className="relative min-w-0 flex-1 sm:flex-initial">
               <button
                 type="button"
                 onClick={() => setShowAddSectionMenu(!showAddSectionMenu)}
-                className="flex items-center gap-1.5 rounded border border-portal-navy bg-white px-3 py-2 text-sm font-medium text-portal-blue-primary hover:bg-portal-bg-section focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
+                className="flex w-full items-center justify-center gap-1.5 rounded border border-portal-navy bg-white px-3 py-2 text-sm font-medium text-portal-blue-primary hover:bg-portal-bg-section focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1 sm:w-auto"
                 aria-expanded={showAddSectionMenu}
                 aria-haspopup="true"
                 aria-label="Add section"
@@ -590,98 +590,98 @@ export default function ReportBuilderPage() {
             <button
               type="button"
               onClick={() => { setShowPromptBar(true); setShowAddSectionMenu(false); }}
-              className="flex items-center gap-1.5 rounded bg-gradient-to-r from-[#a624d2] to-[#3a70d8] px-3 py-2 text-sm font-medium text-white hover:opacity-95"
+              className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-gradient-to-r from-[#a624d2] to-[#3a70d8] px-3 py-2 text-sm font-medium text-white hover:opacity-95 sm:flex-initial"
             >
-              <IconSparkle className="h-5 w-5" /> AI Generate
+              <IconSparkle className="h-5 w-5 shrink-0" /> AI Generate
             </button>
           </div>
         )}
-        <div className="flex items-center gap-1">
+        <div className="flex w-full flex-wrap items-center gap-0.5 sm:w-auto sm:justify-end sm:gap-1">
           <button
             type="button"
             onClick={() => setRightPanel(rightPanel === 'outline' ? null : 'outline')}
-            className={`flex items-center gap-2 rounded p-2 ${rightPanel === 'outline' ? 'bg-portal-ai-bg text-portal-blue-primary' : 'text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy'}`}
+            className={`flex items-center gap-1.5 rounded p-2 sm:gap-2 ${rightPanel === 'outline' ? 'bg-portal-ai-bg text-portal-blue-primary' : 'text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy'}`}
             title="Sections outline"
             aria-label="Toggle sections outline panel"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h10M4 18h7" /></svg>
-            <span className="text-sm font-medium">Outline</span>
+            <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h10M4 18h7" /></svg>
+            <span className="hidden text-sm font-medium sm:inline">Outline</span>
           </button>
           <button
             type="button"
             onClick={() => setRightPanel(rightPanel === 'comments' ? null : 'comments')}
-            className={`flex items-center gap-2 rounded p-2 ${rightPanel === 'comments' ? 'bg-portal-ai-bg text-portal-blue-primary' : 'text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy'}`}
+            className={`flex items-center gap-1.5 rounded p-2 sm:gap-2 ${rightPanel === 'comments' ? 'bg-portal-ai-bg text-portal-blue-primary' : 'text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy'}`}
             title="Comments"
             aria-label="Toggle comments panel"
           >
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-            <span className="text-sm font-medium">Comments</span>
+            <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+            <span className="hidden text-sm font-medium sm:inline">Comments</span>
           </button>
           <button
             type="button"
             onClick={persistReport}
-            className="flex items-center gap-2 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
+            className="flex items-center gap-1.5 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1 sm:gap-2"
             title={saved ? 'Saved' : 'Save'}
             aria-label={saved ? 'Saved' : 'Save report'}
           >
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-            <span className="text-sm font-medium">{saved ? 'Saved' : 'Save'}</span>
+            <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+            <span className="hidden text-sm font-medium sm:inline">{saved ? 'Saved' : 'Save'}</span>
           </button>
           <button
             type="button"
             onClick={handleSummarize}
             disabled={summarizing || (report?.sections || []).length === 0}
-            className="flex items-center gap-2 rounded-lg border border-transparent bg-gradient-to-r from-[#a624d2]/10 to-[#3a70d8]/10 px-3 py-2 text-portal-navy hover:from-[#a624d2]/20 hover:to-[#3a70d8]/20 disabled:opacity-50 disabled:hover:from-[#a624d2]/10 disabled:hover:to-[#3a70d8]/10"
+            className="flex items-center gap-1.5 rounded-lg border border-transparent bg-gradient-to-r from-[#a624d2]/10 to-[#3a70d8]/10 px-2 py-2 text-portal-navy hover:from-[#a624d2]/20 hover:to-[#3a70d8]/20 disabled:opacity-50 disabled:hover:from-[#a624d2]/10 disabled:hover:to-[#3a70d8]/10 sm:gap-2 sm:px-3"
             title="AI Summarize report"
             aria-label="AI Summarize report"
           >
             {summarizing ? (
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#a624d2] border-t-transparent" />
+              <span className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#a624d2] border-t-transparent" />
             ) : (
-              <IconSparkle className="h-5 w-5 text-[#a624d2]" />
+              <IconSparkle className="h-5 w-5 shrink-0 text-[#a624d2]" />
             )}
-            <span className="text-sm font-medium">{summarizing ? 'Summarizing…' : 'AI Summarize'}</span>
+            <span className="hidden text-sm font-medium md:inline">{summarizing ? 'Summarizing…' : 'AI Summarize'}</span>
           </button>
           <button
             type="button"
             onClick={handlePublish}
-            className="flex items-center gap-2 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy"
+            className="flex items-center gap-1.5 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy sm:gap-2"
             title="Publish"
             aria-label="Publish report"
           >
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-            <span className="text-sm font-medium">Publish</span>
+            <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span className="hidden text-sm font-medium sm:inline">Publish</span>
           </button>
           <button
             type="button"
             onClick={() => setShowShare(true)}
-            className="flex items-center gap-2 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy"
+            className="flex items-center gap-1.5 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy sm:gap-2"
             title="Share"
             aria-label="Share report"
           >
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-            <span className="text-sm font-medium">Share</span>
+            <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+            <span className="hidden text-sm font-medium sm:inline">Share</span>
           </button>
           <div className="relative">
             <button
               type="button"
               onClick={() => { setShowExportMenu(!showExportMenu); setShowAddSectionMenu(false); }}
               disabled={exporting || sections.length === 0}
-              className="flex items-center gap-2 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1"
+              className="flex items-center gap-1.5 rounded p-2 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-portal-blue-primary focus:ring-offset-1 sm:gap-2"
               title="Export"
               aria-expanded={showExportMenu}
               aria-haspopup="true"
               aria-label="Export report"
             >
-              {exporting ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-portal-blue-primary border-t-transparent" aria-hidden /> : (
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4z"/></svg>
+              {exporting ? <span className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-portal-blue-primary border-t-transparent" aria-hidden /> : (
+                <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4z"/></svg>
               )}
-              <span className="text-sm font-medium">Export</span>
+              <span className="hidden text-sm font-medium sm:inline">Export</span>
             </button>
             {showExportMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowExportMenu(false)} aria-hidden />
-                <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-lg border border-portal-border bg-white py-1 shadow-lg" role="menu" aria-label="Export options">
+                <div className="absolute right-0 top-full z-20 mt-1 w-56 max-w-[calc(100vw-1.5rem)] rounded-lg border border-portal-border bg-white py-1 shadow-lg" role="menu" aria-label="Export options">
                   <button
                     type="button"
                     role="menuitem"
@@ -738,7 +738,7 @@ export default function ReportBuilderPage() {
       </header>
       {/* Presence: show when another person is editing a section */}
       {Object.keys(presence).length > 0 && (
-        <div className="flex shrink-0 items-center gap-2 px-6 py-1.5 bg-amber-50 border-b border-amber-200/60 text-sm">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 px-3 py-1.5 text-xs sm:px-6 sm:text-sm bg-amber-50 border-b border-amber-200/60">
           <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" aria-hidden />
           {Object.entries(presence).map(([sectionId, info], idx) => {
             const sec = sections.find((s) => s.id === sectionId);
@@ -815,11 +815,11 @@ export default function ReportBuilderPage() {
                 )}
               </div>
             )}
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-[11px] text-portal-gray">
                 Drafted by AI · Review before publishing
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={async () => {
@@ -852,8 +852,8 @@ export default function ReportBuilderPage() {
 
       <div className="relative flex flex-1 overflow-hidden">
         {generating && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 backdrop-blur-sm" role="status" aria-live="polite" aria-label="Generating content">
-            <div className="flex flex-col items-center gap-6 rounded-2xl border border-portal-border bg-white px-10 py-8 shadow-2xl animate-fade-in-up">
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 p-3 backdrop-blur-sm" role="status" aria-live="polite" aria-label="Generating content">
+            <div className="flex max-h-[min(90vh,calc(100%-1rem))] w-full max-w-lg flex-col items-center gap-4 overflow-y-auto rounded-2xl border border-portal-border bg-white px-4 py-6 shadow-2xl animate-fade-in-up sm:gap-6 sm:px-10 sm:py-8">
               {/* Animated gradient orb */}
               <div className="relative">
                 <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#a624d2] via-[#6d42ff] to-[#3a70d8] opacity-90 animate-ai-pulse" />
@@ -910,7 +910,7 @@ export default function ReportBuilderPage() {
         )}
         {/* Canvas – portal theme (matches landing bg) */}
         <div
-          className="flex-1 overflow-auto p-6"
+          className="min-w-0 flex-1 overflow-auto p-3 sm:p-6"
           style={{
             backgroundColor: 'var(--portal-bg-section, #f5f6f8)',
             backgroundImage: 'radial-gradient(circle, var(--portal-border, #e7e7e8) 1px, transparent 1px)',
@@ -927,7 +927,7 @@ export default function ReportBuilderPage() {
               </div>
             )}
             {sections.length === 0 && (
-              <div className="rounded-[10px] border-2 border-dashed border-portal-border bg-white p-16 text-center">
+              <div className="rounded-[10px] border-2 border-dashed border-portal-border bg-white p-8 text-center sm:p-16">
                 <p className="text-base font-medium text-portal-gray">
                   No sections yet. Use <strong className="text-portal-navy">AI Generate</strong> or <strong className="text-portal-navy">+ Add Section</strong> above to get started.
                 </p>
@@ -938,10 +938,10 @@ export default function ReportBuilderPage() {
             )}
             {sections.length > 0 && (
               <>
-                <div ref={canvasRef} className="rounded-[10px] bg-white p-8 shadow-card">
+                <div ref={canvasRef} className="rounded-[10px] bg-white p-4 shadow-card sm:p-8">
                 {/* Report title – NCSI landing style (font-display, tracking) */}
-                <div className="mb-6 flex items-center gap-3">
-                  <h1 className="font-display text-[30px] font-extrabold leading-[40px] tracking-[-0.5px] text-portal-navy-dark">
+                <div className="mb-4 flex flex-wrap items-center gap-3 sm:mb-6">
+                  <h1 className="font-display text-xl font-extrabold leading-tight tracking-[-0.5px] text-portal-navy-dark sm:text-2xl md:text-[30px] md:leading-[40px]">
                     {report?.title || 'Untitled Report'}
                   </h1>
                   <span className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-portal-border bg-portal-bg-section text-portal-gray" title="Collaboration">
@@ -1034,12 +1034,19 @@ export default function ReportBuilderPage() {
         </div>
 
         {rightPanel === 'outline' && (
-          <aside className="w-72 shrink-0 border-l border-portal-border bg-white shadow-lg">
-            <div className="flex h-12 items-center justify-between border-b border-portal-border px-4">
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+              aria-label="Close outline panel"
+              onClick={() => setRightPanel(null)}
+            />
+            <aside className="fixed inset-y-0 right-0 z-50 flex w-[min(20rem,calc(100vw-0.75rem))] flex-col border-l border-portal-border bg-white shadow-xl lg:static lg:z-auto lg:h-full lg:w-72 lg:max-w-none lg:shrink-0 lg:shadow-lg">
+            <div className="flex h-12 shrink-0 items-center justify-between border-b border-portal-border px-4">
               <span className="font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark">Sections outline</span>
               <button type="button" onClick={() => setRightPanel(null)} className="rounded p-1 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy">×</button>
             </div>
-            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <ol className="space-y-2 text-xs">
                 {sections.map((sec, idx) => {
                   const isActiveOutline = activeSectionId === sec.id;
@@ -1102,15 +1109,23 @@ export default function ReportBuilderPage() {
               </ol>
             </div>
           </aside>
+          </>
         )}
 
         {rightPanel === 'comments' && (
-          <aside className="w-80 shrink-0 border-l border-portal-border bg-white shadow-lg">
-            <div className="flex h-12 items-center justify-between border-b border-portal-border px-4">
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+              aria-label="Close comments panel"
+              onClick={() => setRightPanel(null)}
+            />
+            <aside className="fixed inset-y-0 right-0 z-50 flex w-[min(22rem,calc(100vw-0.75rem))] flex-col border-l border-portal-border bg-white shadow-xl lg:static lg:z-auto lg:h-full lg:w-80 lg:max-w-none lg:shrink-0 lg:shadow-lg">
+            <div className="flex h-12 shrink-0 items-center justify-between border-b border-portal-border px-4">
               <span className="font-display text-base font-bold tracking-[-0.5px] text-portal-navy-dark">Comments</span>
               <button type="button" onClick={() => setRightPanel(null)} className="rounded p-1 text-portal-gray hover:bg-portal-bg-section hover:text-portal-navy">×</button>
             </div>
-            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {(report?.comments || []).map((c) => (
                 <div key={c.id} className={`mb-4 rounded-lg border p-3 transition-all ${c.resolved ? 'border-portal-border-light bg-portal-bg-section/50 opacity-75' : 'border-portal-border bg-white shadow-sm'}`}>
                   <div className="flex items-center justify-between gap-2">
@@ -1132,6 +1147,7 @@ export default function ReportBuilderPage() {
               />
             </div>
           </aside>
+          </>
         )}
       </div>
 
@@ -1143,14 +1159,14 @@ export default function ReportBuilderPage() {
       )}
 
       {/* Bottom status bar – NCSI navy strip (matches TopBar) */}
-      <div className="flex h-8 shrink-0 items-center justify-between bg-portal-navy px-6 text-[10px] text-white/90">
-        <div className="flex items-center gap-3">
-          <span>{sections.length} section{sections.length !== 1 ? 's' : ''}</span>
+      <div className="flex min-h-8 shrink-0 flex-col gap-1 px-3 py-1.5 text-[10px] text-white/90 sm:h-8 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-6 sm:py-0 bg-portal-navy">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5">
+          <span className="shrink-0">{sections.length} section{sections.length !== 1 ? 's' : ''}</span>
           {activeSectionId && (
-            <span>· Selected: {sections.find((s) => s.id === activeSectionId)?.title || '—'}</span>
+            <span className="min-w-0 truncate sm:max-w-[min(50vw,24rem)]">· Selected: {sections.find((s) => s.id === activeSectionId)?.title || '—'}</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {generating && <span>Generating…</span>}
           <span className="font-medium">NCSI SMART Portal</span>
         </div>
@@ -1813,8 +1829,8 @@ function ReportSectionCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div ref={editAreaRef} onClick={(e) => editing && e.stopPropagation()}>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-2">
             {draggable && (isHovered || isActive) && (
               <button
@@ -1856,7 +1872,7 @@ function ReportSectionCard({
               </h3>
             )}
           </div>
-          <div className={`relative flex items-center gap-1 shrink-0 transition-opacity duration-150 ${isHovered || isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className={`relative flex max-sm:flex-wrap items-center gap-1 shrink-0 transition-opacity duration-150 ${isHovered || isActive ? 'opacity-100' : 'opacity-0 pointer-events-none max-sm:opacity-100 max-sm:pointer-events-auto'}`}>
             {presenceInfo && (
               <span className="flex items-center gap-1 text-xs text-amber-600" title={`${presenceInfo.name} is editing this section`}>
                 <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
@@ -1988,7 +2004,7 @@ function ReportSectionCard({
             </span>
           )}
           {onRegenerate && !isTitleOnly && (
-            <div className={`ml-auto flex items-center gap-1 transition-opacity duration-150 ${isHovered || isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`ml-auto flex max-sm:flex-wrap items-center gap-1 transition-opacity duration-150 ${isHovered || isActive ? 'opacity-100' : 'opacity-0 pointer-events-none max-sm:opacity-100 max-sm:pointer-events-auto'}`}>
               {showRegenPrompt && (
                 <div className="flex items-center gap-1.5 rounded-full border border-portal-border bg-white px-2 py-1 shadow-sm" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -2151,15 +2167,15 @@ function ShareReportDialog({ report, onClose }) {
     onClose();
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-portal-border bg-white p-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+      <div className="w-full max-w-md rounded-xl border border-portal-border bg-white p-4 max-h-[90vh] overflow-y-auto sm:p-6">
         <h3 className="font-display text-lg font-bold tracking-[-0.5px] text-portal-navy-dark">Share & collaborate</h3>
         <p className="mt-1 text-sm text-portal-gray">Share the edit link to collaborate, or the view-only embed for other websites.</p>
         <div className="mt-4">
           <p className="text-xs font-semibold text-portal-navy-dark mb-1">Edit link (full access – toolbar, co-edit)</p>
-          <div className="flex gap-2">
-            <input readOnly value={link} className="flex-1 rounded border border-portal-border-light px-3 py-2 text-sm min-w-0" />
-            <button type="button" onClick={copy} className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark shrink-0">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input readOnly value={link} className="min-w-0 flex-1 rounded border border-portal-border-light px-3 py-2 text-sm" />
+            <button type="button" onClick={copy} className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark sm:shrink-0">
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
@@ -2170,8 +2186,8 @@ function ShareReportDialog({ report, onClose }) {
         <div className="mt-4 pt-4 border-t border-portal-border">
           <p className="text-xs font-semibold text-portal-navy-dark mb-1">View-only embed – works anywhere</p>
           <p className="text-[11px] text-portal-gray mb-2">Portable link with report data in URL. Embed on any website, any origin – no backend needed.</p>
-          <div className="flex gap-2">
-            <input readOnly value={portableEmbedLink} className="flex-1 rounded border border-portal-border-light px-3 py-2 text-sm min-w-0" />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input readOnly value={portableEmbedLink} className="min-w-0 flex-1 rounded border border-portal-border-light px-3 py-2 text-sm" />
             <button
               type="button"
               onClick={async () => {
@@ -2182,7 +2198,7 @@ function ShareReportDialog({ report, onClose }) {
                   setTimeout(() => setEmbedCopied(false), 2000);
                 }
               }}
-              className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark shrink-0"
+              className="rounded bg-portal-blue-primary px-4 py-2 text-sm font-medium text-white hover:bg-portal-blue-dark sm:shrink-0"
             >
               {embedCopied ? 'Copied' : 'Copy iframe'}
             </button>

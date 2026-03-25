@@ -34,9 +34,9 @@ export default function UpperBar() {
 
   return (
     <div className="w-full bg-gray-100 border-b border-gray-200">
-      <div className="flex items-center justify-between px-4 md:px-6 lg:px-[100px] h-9 text-sm ht-44">
+      <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-2 gap-y-1 px-4 py-1 text-sm ht-44 md:px-6 lg:px-[100px] sm:h-9 sm:gap-y-0 sm:py-0">
         {/* Social Icons */}
-        <div className="flex items-center gap-4 text-[#182F5B] text-lg">
+        <div className="flex shrink-0 items-center gap-2 text-[#182F5B] text-base sm:gap-4 sm:text-lg">
           <a href={PlatformType.Facebook}>
             <FaFacebookF />
           </a>
@@ -60,7 +60,7 @@ export default function UpperBar() {
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-6 text-[#182f5b]">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[#182f5b] sm:gap-x-6">
           <button className="flex items-center gap-1 hover:opacity-80">
             <FaGlobe />
             <span>عربي</span>
